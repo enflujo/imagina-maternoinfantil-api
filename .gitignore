@@ -1,0 +1,7 @@
+node_modules
+*.log
+basededatos
+api/
+.env
+src/datos/**.*
+!src/datos/.gitkeep

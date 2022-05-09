@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  bd:
+    container_name: imagina-bd
+    image: 'postgis/postgis'
+    volumes:
+      - ./basededatos:/var/lib/postgresql/data
+    networks:
+      - red-imagina
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: ${BD_USUARIO}
+      POSTGRES_PASSWORD: ${BD_CLAVE}
+      POSTGRES_DB: ${BD_NOMBRE}
+  cache:
+    container_name: imagina-cache
+    image: redis:6.2-alpine
+    networks:
+      - red-imagina
+    ports:
+      - ${CACHE_PUERTO}:6379
+
+networks:
+  red-imagina:
