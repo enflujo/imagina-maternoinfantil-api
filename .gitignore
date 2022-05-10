@@ -5,3 +5,4 @@ api/
 .env
 src/datos/**.*
 !src/datos/.gitkeep
+.DS_Store
