@@ -4,8 +4,8 @@ import fastify, { FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import xlsx from 'xlsx';
 import { cadena, logAviso, logCyan } from './utilidades/constantes';
-import { extraerNombreCodigo, guardarJSON, redondearDecimal } from './utilidades/ayudas';
-import { DatosFuente, DatosProcesados } from './tipos';
+import { esNumero, extraerNombreCodigo, guardarJSON, redondearDecimal } from './utilidades/ayudas';
+import { DatosFuente, DatosProcesados, DepartamentoProcesado, MunicipioProcesado } from './tipos';
 import errata from './modulos/errata';
 
 const rutaIndicadores = path.resolve(__dirname, './datos/indicadores.xlsx');
@@ -30,7 +30,7 @@ servidor.get('/', async (request, reply) => {
       console.log('Procesando tabla', nombreTabla);
       const archivo = xlsx.readFile(rutaIndicadores, { sheets: nombreTabla });
       const datosTabla: DatosFuente[] = xlsx.utils.sheet_to_json(archivo.Sheets[nombreTabla]);
-      const datosProcesados: DatosProcesados[] = [];
+      const datosProcesados: DatosProcesados = [];
 
       if (!errata[nombreTabla]) {
         errata[nombreTabla] = {
@@ -44,51 +44,73 @@ servidor.get('/', async (request, reply) => {
 
       for (let n = 0; n < datosTabla.length; n++) {
         const fila = datosTabla[n];
+        const numeroFila = n + 2;
+        const año = fila.Ano;
+        const dep = fila.Departamento;
+        const mun = fila.Municipio;
         const caracterizacion = fila.Caracterización;
         const etnia = fila.Etnia;
         const tipoRegimen = fila['Tipo Régimen'];
         const sexo = fila.Sexo;
+        const numerador = fila.Numerador || 0;
+        const denominador = fila.Denominador || 0;
 
         agregador.caracterizaciones.add(caracterizacion);
         agregador.etnias.add(etnia);
         agregador.regimen.add(tipoRegimen);
         agregador.sexo.add(sexo);
 
-        if (!fila.Numerador || !fila.Denominador) {
-          errata[nombreTabla].sinPorcentaje++;
-          continue;
-        }
+        // if (!fila.Numerador || !fila.Denominador) {
+        //   errata[nombreTabla].sinPorcentaje++;
+        //   continue;
+        // }
 
-        if (fila.Numerador > fila.Denominador) {
+        if (numerador > denominador) {
           errata[nombreTabla].numeradorMayorQueDenominador++;
           continue;
         }
 
-        const dep = fila.Departamento;
-        let departamento;
+        let departamentoI = 0;
+
         if (dep) {
-          departamento = extraerNombreCodigo(dep);
+          const departamento = extraerNombreCodigo(dep);
+          departamentoI = datosProcesados.findIndex((d: DepartamentoProcesado) => d.dep === departamento.codigo);
+
+          if (departamentoI < 0) {
+            datosProcesados.push({
+              dep: departamento.codigo,
+              agregados: {},
+              municipios: [],
+            });
+            departamentoI = datosProcesados.length - 1;
+          }
         } else {
-          console.log(n + 2, departamento);
+          console.log(numeroFila, dep);
           throw new Error('ERROR: Departamento');
         }
 
-        const mun = fila.Municipio;
-        let municipioI = -9999999;
+        let municipioI = 0;
+
         if (mun) {
           const municipio = extraerNombreCodigo(mun);
-          municipioI = datosProcesados.findIndex((m) => m[0] === municipio.codigo);
+          municipioI = datosProcesados[departamentoI].municipios.findIndex(
+            (m: MunicipioProcesado) => m.mun === municipio.codigo
+          );
 
           if (municipioI < 0) {
-            datosProcesados.push([municipio.codigo, departamento.codigo, {}]);
-            municipioI = datosProcesados.length - 1;
+            datosProcesados[departamentoI].municipios.push({
+              mun: municipio.codigo,
+              agregados: {},
+              datos: {},
+            });
+            municipioI = datosProcesados[departamentoI].municipios.length - 1;
           }
         } else {
-          console.error(n + 2, mun);
+          console.error(numeroFila, mun);
           throw new Error('ERROR: Municipio');
         }
 
-        let codigoEtnia = -9;
+        let codigoEtnia: number | null = null;
 
         try {
           if (etnia) {
@@ -99,7 +121,6 @@ servidor.get('/', async (request, reply) => {
               codigoEtnia = +codigo;
             }
           } else {
-            codigoEtnia = -2;
             console.log(n + 2, etnia);
           }
         } catch (err) {
@@ -107,38 +128,80 @@ servidor.get('/', async (request, reply) => {
           // throw new Error();
         }
 
-        let codigoRegimen = '';
+        let codigoRegimen: string | null = null;
 
         try {
           if (tipoRegimen) {
-            const { codigo, nombre } = extraerNombreCodigo(tipoRegimen);
-            codigoRegimen = codigo;
+            const { codigo } = extraerNombreCodigo(tipoRegimen);
+            codigoRegimen = codigo.toLowerCase();
           }
         } catch (err) {
-          console.log(n + 2, fila['Tipo Régimen']);
+          console.log(numeroFila, tipoRegimen);
         }
 
-        let codigoSexo = '';
+        let codigoSexo: string | null = null;
 
-        if (sexo === 'FEMENINO') {
-          codigoSexo = 'f';
-        } else if (sexo === 'MASCULINO') {
-          codigoSexo = 'm';
-        } else if (sexo === 'INDETERMINADO' || sexo === undefined) {
-          codigoSexo = 'n/a';
-        } else {
-          errata[nombreTabla].errores.push(`Sexo en fila ${n + 2} no identificado: ${sexo}`);
+        try {
+          if (sexo) {
+            if (sexo === 'FEMENINO') {
+              codigoSexo = 'f';
+            } else if (sexo === 'MASCULINO') {
+              codigoSexo = 'm';
+            } else if (sexo === 'INDETERMINADO') {
+              codigoSexo = 'i';
+            }
+          }
+        } catch (err) {
+          console.log(numeroFila, sexo);
         }
 
-        datosProcesados[municipioI][2][fila.Ano] = [
-          fila.Numerador,
-          fila.Denominador,
-          redondearDecimal((fila.Numerador / fila.Denominador) * 100, 1, 2),
+        let codigoCaracterizacion: string | null = null;
+
+        if (caracterizacion) {
+          if (caracterizacion === 'No Reportado') {
+            codigoCaracterizacion = 'nr';
+          } else {
+            const partes = caracterizacion.split(' ');
+            const edades = partes.filter((parte) => esNumero(parte));
+            codigoCaracterizacion = edades.join('-');
+          }
+        }
+
+        if (!datosProcesados[departamentoI].agregados[año]) {
+          datosProcesados[departamentoI].agregados[año] = [0, 0, 0];
+        }
+
+        datosProcesados[departamentoI].agregados[año][0] += numerador;
+        datosProcesados[departamentoI].agregados[año][1] += denominador;
+
+        const [depNum, depDen] = datosProcesados[departamentoI].agregados[año];
+        const depPorcentaje = (depNum / depDen) * 100;
+        datosProcesados[departamentoI].agregados[año][2] = redondearDecimal(depPorcentaje, 1, 2);
+
+        if (!datosProcesados[departamentoI].municipios[municipioI].agregados[año]) {
+          datosProcesados[departamentoI].municipios[municipioI].agregados[año] = [0, 0, 0];
+        }
+
+        datosProcesados[departamentoI].municipios[municipioI].agregados[año][0] += numerador;
+        datosProcesados[departamentoI].municipios[municipioI].agregados[año][1] += denominador;
+
+        const [munNum, munDen] = datosProcesados[departamentoI].municipios[municipioI].agregados[año];
+        const munPorcentaje = (munNum / munDen) * 100;
+        datosProcesados[departamentoI].municipios[municipioI].agregados[año][2] = redondearDecimal(munPorcentaje, 1, 2);
+
+        if (!datosProcesados[departamentoI].municipios[municipioI].datos[año]) {
+          datosProcesados[departamentoI].municipios[municipioI].datos[año] = [];
+        }
+
+        datosProcesados[departamentoI].municipios[municipioI].datos[año].push([
           codigoEtnia,
           codigoRegimen,
           codigoSexo,
-          caracterizacion,
-        ];
+          codigoCaracterizacion,
+          numerador,
+          denominador,
+          redondearDecimal((numerador / denominador) * 100, 1, 2),
+        ]);
 
         errata[nombreTabla].procesados++;
       }
@@ -153,7 +216,7 @@ servidor.get('/', async (request, reply) => {
   } catch (err: unknown) {
     console.error(err);
   }
-  return { mensaje: 'holas' };
+  return { mensaje: 'Datos procesados' };
 });
 
 const inicio = async () => {
