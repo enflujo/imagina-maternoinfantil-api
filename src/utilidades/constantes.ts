@@ -18,3 +18,11 @@ export const cadena = emoji.emojify(':link:');
 export const conector = emoji.emojify(':electric_plug:');
 export const gorila = emoji.emojify(':gorilla:');
 export const chulo = emoji.emojify(':white_check_mark:');
+
+export const parametrosBd = {
+  database: process.env.BD_NOMBRE,
+  user: process.env.BD_USUARIO,
+  password: process.env.BD_CLAVE,
+  port: 5432,
+  host: 'localhost',
+};

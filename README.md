@@ -4,7 +4,12 @@
 
 ### mortalidad neonatal temprana
 
-- Borramos porque tiene fin e inicio de tablas (Total General y de nuevo los encabezados de fila 1). Seguramente no se borraron al aplanar: desde 25992 a 25994, desde 51303 a 51306, desde 76868 a 76871, desde 102783 a 102786, desde 128868 a 128871
+- Borramos las siguientes filas, ya que tiene fin e inicio de tablas (Total General y de nuevo los encabezados de fila 1). Seguramente no se borraron al aplanar:
+  - 25992 a 25994
+  - 51303 a 51306
+  - 76868 a 76871
+  - 102783 a 102786
+  - 128868 a 128871
 
 ## Modelado
 
@@ -92,4 +97,12 @@ classDiagram
   Instancia --> "1" Etnias : Contiene
   Instancia --> "1" TipoRégimen : Contiene
   Instancia --> "1" Caracterizaciones : Contiene
+```
+
+## PGAdmin
+
+Arreglar permiso de volumen:
+
+```bash
+sudo chown -R 5050:5050 ./pgadmin
 ```
