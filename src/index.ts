@@ -10,13 +10,12 @@ const servidor: FastifyInstance = fastify();
 const PUERTO = process.env.API_PUERTO ? +process.env.API_PUERTO : 8080;
 
 servidor.register(cors);
+servidor.register(limpieza);
 
 servidor.get('/', async () => {
   console.log('creando tabla');
   await crearEstructura();
 });
-
-// servidor.register(limpieza, { prefix: '/v2' });
 
 servidor.listen({ port: PUERTO }, (err, urlServidor) => {
   if (err) {

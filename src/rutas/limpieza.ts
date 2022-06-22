@@ -1,11 +1,10 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions } from 'fastify';
 import path from 'path';
+import fp from 'fastify-plugin';
 import xlsx from 'xlsx';
 import errata from '../modulos/errata';
 import { DatosFuente, DatosProcesados, DepartamentoProcesado, MunicipioProcesado } from '../tipos';
 import { esNumero, extraerNombreCodigo, guardarJSON, redondearDecimal } from '../utilidades/ayudas';
-
-const rutaIndicadores = path.resolve(__dirname, './datos/Data Indicadores cubo indicadores.xlsx');
 
 const agregador = {
   caracterizaciones: new Set(),
@@ -13,17 +12,21 @@ const agregador = {
   etnias: new Set(),
   regimen: new Set(),
 };
-
-export default (servidor: FastifyInstance) => {
-  servidor.get('/', async (request, reply) => {
+// const rutaIndicadores = path.resolve(__dirname, '../datos/NUEVA data indicadores disponibles minsaludf.xlsx');
+const rutaIndicadores = path.resolve(__dirname, '../datos/PROMEDIO CONTROLES PRENATALES.xlsx');
+const noVan = ['LISTADO TOTAL', 'INDICADORES GUIA'];
+const RutaLimpieza: FastifyPluginAsync = async (servidor: FastifyInstance, opciones: FastifyPluginOptions) => {
+  servidor.get('/limpieza', {}, async (request, reply) => {
     try {
       const excelIndicadores = xlsx.readFile(rutaIndicadores, { bookSheets: true });
-      const todasLasTablas = excelIndicadores.SheetNames;
+      const todasLasTablas = excelIndicadores.SheetNames.filter((nombre: string) => !noVan.includes(nombre));
+
+      console.log(todasLasTablas);
+
       todasLasTablas.forEach((nombreTabla: string, i: number) => {
-        // if (i === 24) {
         console.log('Procesando tabla', nombreTabla);
         const archivo = xlsx.readFile(rutaIndicadores, { sheets: nombreTabla });
-        const datosTabla: DatosFuente[] = xlsx.utils.sheet_to_json(archivo.Sheets[nombreTabla]);
+        const datosTabla: DatosFuente[] = xlsx.utils.sheet_to_json(archivo.Sheets[nombreTabla], { range: 3 });
         const datosProcesados: DatosProcesados = [];
 
         if (!errata[nombreTabla]) {
@@ -35,7 +38,7 @@ export default (servidor: FastifyInstance) => {
           };
         }
 
-        for (let n = 0; n < datosTabla.length; n++) {
+        for (let n = 0; n < datosTabla.length - 1; n++) {
           const fila = datosTabla[n];
           const numeroFila = n + 2;
           const año = fila.Ano;
@@ -53,10 +56,10 @@ export default (servidor: FastifyInstance) => {
           agregador.regimen.add(tipoRegimen);
           agregador.sexo.add(sexo);
 
-          if (!fila.Numerador || !fila.Denominador) {
-            errata[nombreTabla].sinPorcentaje++;
-            continue;
-          }
+          // if (!fila.Numerador || !fila.Denominador) {
+          //   errata[nombreTabla].sinPorcentaje++;
+          //   continue;
+          // }
 
           if (numerador > denominador) {
             errata[nombreTabla].numeradorMayorQueDenominador++;
@@ -79,6 +82,7 @@ export default (servidor: FastifyInstance) => {
             }
           } else {
             console.log(numeroFila, dep);
+            continue;
             throw new Error('ERROR: Departamento');
           }
 
@@ -207,12 +211,13 @@ export default (servidor: FastifyInstance) => {
 
         guardarJSON(errata, 'errata');
         guardarJSON(agregador, 'agregados');
-        // }
       });
+
       console.log('FIN');
-    } catch (err: unknown) {
-      console.error(err);
+    } catch (err) {
+      console.log(err);
     }
-    return { mensaje: 'Datos procesados' };
   });
 };
+
+export default fp(RutaLimpieza);
