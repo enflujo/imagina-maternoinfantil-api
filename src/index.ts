@@ -12,12 +12,12 @@ const PUERTO = process.env.API_PUERTO ? +process.env.API_PUERTO : 8080;
 servidor.register(cors);
 servidor.register(limpieza);
 
-servidor.get('/', async () => {
-  console.log('creando tabla');
-  await crearEstructura();
-});
+// servidor.get('/', async () => {
+//   console.log('creando tabla');
+//   await crearEstructura();
+// });
 
-servidor.listen({ port: PUERTO }, (err, urlServidor) => {
+servidor.listen({ port: PUERTO }, (err) => {
   if (err) {
     servidor.log.error(err);
     throw err;

@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "limpiar": "rimraf ./api/",
-    "copiar": "copyfiles -u 1 src/datos/*.xlsx api/",
+    "copiar": "copyfiles -u 1 src/datos/*.csv api/",
     "build": "tsc -p tsconfig.json",
     "dev": "yarn limpiar && yarn copiar && yarn dev:inicio",
     "dev:inicio": "concurrently --kill-others-on-fail --raw \"yarn dev:ts\" \"yarn dev:api\"",
@@ -15,6 +15,7 @@
     "@fastify/cors": "^8.0.0",
     "cli-color": "^2.0.2",
     "cli-progress": "^3.11.1",
+    "csv-parse": "^5.2.0",
     "fastify": "^4.0.2",
     "fastify-plugin": "^3.0.1",
     "node-emoji": "^1.11.0",

@@ -44,8 +44,12 @@ export const redondearDecimal = (num: number, minimo: number, maximo: number): n
   );
 
 export const extraerNombreCodigo = (texto: string): NombreCodigo => {
-  const arr = texto.split('-');
-  const codigo = arr[0].trim();
-  const nombre = arr[1].trim();
-  return { nombre, codigo };
+  if (texto && texto.includes('-')) {
+    const arr = texto.split('-');
+    const codigo = arr[0].trim();
+    const nombre = arr[1].trim();
+    return { nombre, codigo };
+  }
+  console.log(texto);
+  throw new Error();
 };

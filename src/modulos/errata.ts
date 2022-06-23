@@ -3,6 +3,7 @@ export type Tablas = {
     sinPorcentaje: number;
     procesados: number;
     numeradorMayorQueDenominador: number;
+    errores: string[];
     total: number;
   };
 };

@@ -131,3 +131,7 @@ sudo chown -R 5050:5050 ./pgadmin
   'MORTALIDAD DESNUTRICI< 5',
 ];
 ```
+
+### Recomendaciones
+
+En Linux, abrir datos con Gnumeric.

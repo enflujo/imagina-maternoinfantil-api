@@ -27,8 +27,8 @@ export type Instancia = [
   regimen: string | null,
   sexo: string | null,
   caracterizacion: string | null,
-  numerador: number,
-  denominador: number,
+  numerador: number | null,
+  denominador: number | null,
   porcentaje: number | null
 ];
 
@@ -59,15 +59,16 @@ export type DatosProcesados = DepartamentoProcesado[];
 
 export type DatosFuente = {
   Ano: number;
+  Indicador: string;
   Departamento: string;
   Municipio: string;
   Etnia: string;
-  Numerador: number;
-  Denominador: number;
-  Indicador: string;
-  'Tipo Régimen': string;
+  Régimen: string;
   Sexo: string;
   Caracterización: string;
+  Numerador: number;
+  Denominador: number;
+  ValorIndicador: number;
 };
 
 /**
