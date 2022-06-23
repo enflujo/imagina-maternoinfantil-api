@@ -29,7 +29,7 @@ export type Instancia = [
   caracterizacion: string | null,
   numerador: number,
   denominador: number,
-  porcentaje: number
+  porcentaje: number | null
 ];
 
 export type MunicipioProcesado = {

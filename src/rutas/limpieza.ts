@@ -12,8 +12,8 @@ const agregador = {
   etnias: new Set(),
   regimen: new Set(),
 };
-// const rutaIndicadores = path.resolve(__dirname, '../datos/NUEVA data indicadores disponibles minsaludf.xlsx');
-const rutaIndicadores = path.resolve(__dirname, '../datos/PROMEDIO CONTROLES PRENATALES.xlsx');
+const rutaIndicadores = path.resolve(__dirname, '../datos/NUEVA data indicadores disponibles minsaludf.xlsx');
+// const rutaIndicadores = path.resolve(__dirname, '../datos/PROMEDIO CONTROLES PRENATALES.xlsx');
 const noVan = ['LISTADO TOTAL', 'INDICADORES GUIA'];
 const RutaLimpieza: FastifyPluginAsync = async (servidor: FastifyInstance, opciones: FastifyPluginOptions) => {
   servidor.get('/limpieza', {}, async (request, reply) => {
@@ -38,7 +38,7 @@ const RutaLimpieza: FastifyPluginAsync = async (servidor: FastifyInstance, opcio
           };
         }
 
-        for (let n = 0; n < datosTabla.length - 1; n++) {
+        for (let n = 0; n < datosTabla.length; n++) {
           const fila = datosTabla[n];
           const numeroFila = n + 2;
           const año = fila.Ano;
@@ -168,8 +168,8 @@ const RutaLimpieza: FastifyPluginAsync = async (servidor: FastifyInstance, opcio
             datosProcesados[departamentoI].agregados[año] = [0, 0, 0];
           }
 
-          datosProcesados[departamentoI].agregados[año][0] += numerador;
-          datosProcesados[departamentoI].agregados[año][1] += denominador;
+          if (numerador) datosProcesados[departamentoI].agregados[año][0] += numerador;
+          if (denominador) datosProcesados[departamentoI].agregados[año][1] += denominador;
 
           const [depNum, depDen] = datosProcesados[departamentoI].agregados[año];
           const depPorcentaje = (depNum / depDen) * 100;
@@ -179,8 +179,8 @@ const RutaLimpieza: FastifyPluginAsync = async (servidor: FastifyInstance, opcio
             datosProcesados[departamentoI].municipios[municipioI].agregados[año] = [0, 0, 0];
           }
 
-          datosProcesados[departamentoI].municipios[municipioI].agregados[año][0] += numerador;
-          datosProcesados[departamentoI].municipios[municipioI].agregados[año][1] += denominador;
+          if (numerador) datosProcesados[departamentoI].municipios[municipioI].agregados[año][0] += numerador;
+          if (denominador) datosProcesados[departamentoI].municipios[municipioI].agregados[año][1] += denominador;
 
           const [munNum, munDen] = datosProcesados[departamentoI].municipios[municipioI].agregados[año];
           const munPorcentaje = (munNum / munDen) * 100;
@@ -201,7 +201,7 @@ const RutaLimpieza: FastifyPluginAsync = async (servidor: FastifyInstance, opcio
             codigoCaracterizacion,
             numerador,
             denominador,
-            redondearDecimal((numerador / denominador) * 100, 1, 2),
+            numerador && denominador ? redondearDecimal((numerador / denominador) * 100, 1, 2) : null,
           ]);
 
           errata[nombreTabla].procesados++;
