@@ -2,10 +2,11 @@ import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions } from 'fasti
 import path from 'path';
 import fp from 'fastify-plugin';
 import errata from '../modulos/errata';
-import { DatosFuente, DatosProcesados, DepartamentoProcesado, MunicipioProcesado } from '../tipos';
+import { DatosProcesados, DepartamentoProcesado, MunicipioProcesado } from '../tipos';
 import { esNumero, extraerNombreCodigo, guardarJSON, redondearDecimal } from '../utilidades/ayudas';
 import { getXlsxStream } from 'xlstream';
 import barraProceso from '../modulos/barraProceso';
+import { SingleBar } from 'cli-progress';
 
 const archivos = [
   'NACIDOS VIVOS BAJO PESO',
@@ -58,13 +59,16 @@ async function procesarTabla(indice: number) {
   });
 
   let total = 0;
+  let barraActual: SingleBar;
 
   flujo.on('data', (fila) => {
     if (Object.keys(fila.raw.obj).length <= 4) return;
 
     if (numeroFila === 0) {
       total = fila.totalSheetSize;
-      barraProceso.start(total, 0, {
+      barraActual = barraProceso();
+
+      barraActual.start(total, 0, {
         tabla: nombreTabla,
         terminado: false,
       });
@@ -243,7 +247,7 @@ async function procesarTabla(indice: number) {
       ]);
 
       errata[nombreTabla].procesados++;
-      barraProceso.update(fila.processedSheetSize);
+      barraActual.update(fila.processedSheetSize, { terminado: false });
     } else {
       // console.log(fila);
     }
@@ -254,8 +258,8 @@ async function procesarTabla(indice: number) {
     guardarJSON(errata, 'errata');
     guardarJSON(agregador, 'agregados');
 
-    barraProceso.update(total, { terminado: true });
-    console.log('');
+    barraActual.update(total, { terminado: true });
+    barraActual.stop();
 
     if (indice < archivos.length - 1) {
       procesarTabla(++indice);
@@ -266,12 +270,8 @@ async function procesarTabla(indice: number) {
 }
 
 const RutaLimpieza: FastifyPluginAsync = async (servidor: FastifyInstance, opciones: FastifyPluginOptions) => {
-  servidor.get('/csv', {}, async () => {
-    procesarTabla(0);
-  });
-
   servidor.get('/excel', {}, async () => {
-    procesarTabla(9);
+    procesarTabla(0);
   });
 };
 

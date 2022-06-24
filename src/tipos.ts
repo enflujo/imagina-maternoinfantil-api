@@ -3,7 +3,7 @@
 //   agregados: {
 //     2015: [0, 0, 0],
 //   },
-//   muicipios: [
+//   municipios: [
 //     {
 //       mun: '05001',
 //       agregados: {

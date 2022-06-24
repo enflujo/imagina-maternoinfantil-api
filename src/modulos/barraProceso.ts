@@ -1,4 +1,4 @@
-import { SingleBar, Options as ProgressOptions, Params as ProgressParams } from 'cli-progress';
+import { Options as ProgressOptions, Params as ProgressParams, MultiBar, SingleBar } from 'cli-progress';
 import {
   logAviso,
   logCyan,
@@ -24,27 +24,24 @@ function formatoBarra(opciones: ProgressOptions, params: ProgressParams, payload
     const seccionCompleta = opciones.barCompleteString || '=';
     const seccionIncompleta = opciones.barIncompleteString || '-';
     const barra = seccionCompleta.substring(0, completado) + seccionIncompleta.substring(0, ancho - completado);
-    const paginas = `Tabla: ${payload.tabla}`;
-    const cola = `${paginas} | ${((value / total) * 100).toFixed(1)}% | ${reloj(Date.now() - startTime)}`;
+    const cola = `${((value / total) * 100).toFixed(1)}% | ${reloj(Date.now() - startTime)}`;
 
     if (!payload.terminado) {
-      if (value >= total) {
-        return `${logBloque(conector)} ${logAviso('Procesando errata')} |${logNaranjaPulso(barra)}| ${cola}`;
-      } else {
-        return `${logBloque(gorila)} ${logAviso('Procesando')} |${logCyan(barra)}| ${cola}`;
-      }
+      return `${logBloque(gorila)} ${logAviso(payload.tabla)} |${logCyan(barra)}| ${cola}`;
     }
 
-    return `${chulo} ${logAviso('Archivo procesado')} |${logVerde(barra)}| ${cola}`;
+    return `${chulo} ${logAviso(payload.tabla)} |${logVerde(barra)}| ${cola}`;
   }
 
   return '';
 }
 
-export default new SingleBar({
-  format: formatoBarra,
-  barCompleteChar: '\u2588',
-  barIncompleteChar: '\u2591',
-  // forceRedraw: true,
-  hideCursor: true,
-});
+export default () => {
+  return new SingleBar({
+    format: formatoBarra,
+    barCompleteChar: '\u2588',
+    barIncompleteChar: '\u2591',
+    // forceRedraw: true,
+    hideCursor: true,
+  });
+};
