@@ -53,3 +53,17 @@ export const extraerNombreCodigo = (texto: string): NombreCodigo => {
   console.log(texto);
   throw new Error();
 };
+
+/**
+ * Convierte milisegundos a texto, útil para imprimir tiempo transcurrido.
+ * @param ms Tiempo en milisegundos
+ * @returns Tiempo en formato: HH:MM:SS
+ */
+export const reloj = (ms: number): string =>
+  new Date(ms).toLocaleTimeString('en-GB', {
+    timeZone: 'Etc/UTC',
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
