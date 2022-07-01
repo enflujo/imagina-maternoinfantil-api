@@ -44,13 +44,21 @@ export const redondearDecimal = (num: number, minimo: number, maximo: number): n
   );
 
 export const extraerNombreCodigo = (texto: string): NombreCodigo => {
-  if (texto && texto.includes('-')) {
-    const arr = texto.split('-');
-    const codigo = arr[0].trim();
-    const nombre = arr[1].trim();
-    return { nombre, codigo };
+  if (texto) {
+    const textoComparar = texto.toLocaleLowerCase().trim();
+    if (textoComparar.includes('definido') || textoComparar.includes('reportado')) {
+      return { nombre: 'No Definido', codigo: '-1' };
+    }
+
+    if (texto.includes('-')) {
+      const arr = texto.split('-');
+      const codigo = arr[0].trim();
+      const nombre = arr[1].trim();
+      return { nombre, codigo };
+    }
   }
-  console.log(texto);
+
+  console.log(`Problema al extraer nombre y código del texto: ${texto}`);
   throw new Error();
 };
 

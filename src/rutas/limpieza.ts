@@ -39,6 +39,7 @@ const agregador = {
 async function procesarTabla(indice: number) {
   const nombreTabla = archivos[indice];
   const datosProcesados: DatosProcesados = [];
+
   let numeroFila = 0;
 
   if (!errata[nombreTabla]) {
@@ -117,6 +118,11 @@ async function procesarTabla(indice: number) {
 
       if (dep) {
         const departamento = extraerNombreCodigo(dep);
+        if (!departamento.codigo) {
+          console.log(numeroFila, fila);
+          throw new Error('No tiene código el departamento');
+        }
+
         departamentoI = datosProcesados.findIndex((d: DepartamentoProcesado) => d.dep === departamento.codigo);
 
         if (departamentoI < 0) {
@@ -254,6 +260,26 @@ async function procesarTabla(indice: number) {
   });
 
   flujo.on('close', () => {
+    const departamentosAgregados = datosProcesados.map((obj) => {
+      return {
+        codigo: obj.dep,
+        datos: obj.agregados,
+      };
+    });
+
+    const municipiosAgregados = datosProcesados.map((obj) => {
+      return {
+        dep: obj.dep,
+        datos: obj.municipios.map((mun) => {
+          return {
+            codigo: mun.mun,
+            datos: mun.agregados,
+          };
+        }),
+      };
+    });
+    guardarJSON(departamentosAgregados, `${nombreTabla}-departamentos`);
+    guardarJSON(municipiosAgregados, `${nombreTabla}-municipios`);
     guardarJSON(datosProcesados, nombreTabla);
     guardarJSON(errata, 'errata');
     guardarJSON(agregador, 'agregados');
@@ -271,7 +297,7 @@ async function procesarTabla(indice: number) {
 
 const RutaLimpieza: FastifyPluginAsync = async (servidor: FastifyInstance, opciones: FastifyPluginOptions) => {
   servidor.get('/excel', {}, async () => {
-    procesarTabla(0);
+    procesarTabla(9);
   });
 };
 
