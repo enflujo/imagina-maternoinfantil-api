@@ -1,3 +1,5 @@
+import { archivos } from '../utilidades/constantes';
+
 export type Tablas = {
   [key: string]: {
     sinPorcentaje: number;
@@ -8,4 +10,16 @@ export type Tablas = {
   };
 };
 
-export default {} as Tablas;
+const errata: Tablas = {};
+
+archivos.forEach((nombreTabla: string) => {
+  errata[nombreTabla] = {
+    sinPorcentaje: 0,
+    procesados: 0,
+    numeradorMayorQueDenominador: 0,
+    errores: [],
+    total: 0,
+  };
+});
+
+export default errata;

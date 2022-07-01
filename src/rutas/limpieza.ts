@@ -7,50 +7,15 @@ import { esNumero, extraerNombreCodigo, guardarJSON, redondearDecimal } from '..
 import { getXlsxStream } from 'xlstream';
 import barraProceso from '../modulos/barraProceso';
 import { SingleBar } from 'cli-progress';
-
-const archivos = [
-  'NACIDOS VIVOS BAJO PESO',
-  'NACIDOS VIVOS 4 CONS PRENATAL',
-  'PROMEDIO CONTROLES PRENATALES',
-  'NACIDOS VIVOS <15 PAPA 4',
-  'PARTOS INSTITUCIONALES',
-  'PARTOS POR CESAREA',
-  'NACIDOS DE <14 AÑOS',
-  'PROP NACIDOS DE MUJ 14 A 17',
-  'RAZON MORT MATERNA 1 AÑO',
-  'FECUNDIDAD 10 A 14 AÑOS',
-  'FECUNDIDAD 10 A 19 AÑOS',
-  'FECUNDIDAD 15 A 19 AÑOS',
-  'MORTALIDAD EN LA NIÑEZ',
-  'MORTALIDAD EN < 1 AÑO',
-  'MORTALIDAD < 5EDA',
-  'MORTALIDAD < 5IRA',
-  'MORTALIDAD PERINATAL',
-  'MORTALIDAD DESNUTRICI< 5',
-];
-
-const agregador = {
-  caracterizaciones: new Set(),
-  sexo: new Set(),
-  etnias: new Set(),
-  regimen: new Set(),
-};
+import agregador from '../modulos/agregador';
+import { archivos } from '../utilidades/constantes';
 
 async function procesarTabla(indice: number) {
   const nombreTabla = archivos[indice];
   const datosProcesados: DatosProcesados = [];
-
   let numeroFila = 0;
-
-  if (!errata[nombreTabla]) {
-    errata[nombreTabla] = {
-      sinPorcentaje: 0,
-      procesados: 0,
-      numeradorMayorQueDenominador: 0,
-      errores: [],
-      total: 0,
-    };
-  }
+  let total = 0;
+  let barraActual: SingleBar;
 
   const flujo = await getXlsxStream({
     filePath: path.resolve(__dirname, '../datos/NUEVA data indicadores disponibles minsaludf.xlsx'),
@@ -59,12 +24,11 @@ async function procesarTabla(indice: number) {
     ignoreEmpty: true,
   });
 
-  let total = 0;
-  let barraActual: SingleBar;
-
   flujo.on('data', (fila) => {
+    // Omitir filas que tienen información que no corresponde a los datos (ejemplo: TOTALES al final)
     if (Object.keys(fila.raw.obj).length <= 4) return;
 
+    // Si es la primera fila, iniciar barra de proceso
     if (numeroFila === 0) {
       total = fila.totalSheetSize;
       barraActual = barraProceso();
@@ -75,11 +39,17 @@ async function procesarTabla(indice: number) {
       });
     }
 
+    // Contador para saber en que fila de Excel estamos, útil para buscar errores directo en el Excel.
     numeroFila++;
 
+    // Particularidad de este Excel, todas las tablas empiezan en la fila 4
     if (numeroFila >= 3) {
+      // En este punto hay una fila con datos, sumamos al total en errata para saber cuantos hay registrados en total.
       errata[nombreTabla].total++;
 
+      /**
+       * Las variables (columnas) disponibles en el Excel.
+       */
       const año = fila.formatted.obj.A;
       const dep = fila.formatted.obj.C;
       const mun = fila.formatted.obj.D;
@@ -117,17 +87,17 @@ async function procesarTabla(indice: number) {
       let departamentoI = 0;
 
       if (dep) {
-        const departamento = extraerNombreCodigo(dep);
-        if (!departamento.codigo) {
+        const { codigo } = extraerNombreCodigo(dep);
+        if (!codigo) {
           console.log(numeroFila, fila);
           throw new Error('No tiene código el departamento');
         }
 
-        departamentoI = datosProcesados.findIndex((d: DepartamentoProcesado) => d.dep === departamento.codigo);
+        departamentoI = datosProcesados.findIndex((d: DepartamentoProcesado) => d.dep === codigo);
 
         if (departamentoI < 0) {
           datosProcesados.push({
-            dep: departamento.codigo,
+            dep: codigo,
             agregados: {},
             municipios: [],
           });
@@ -135,20 +105,19 @@ async function procesarTabla(indice: number) {
         }
       } else {
         console.log(numeroFila, dep, fila);
+
         throw new Error('ERROR: Departamento');
       }
 
       let municipioI = 0;
 
       if (mun) {
-        const municipio = extraerNombreCodigo(mun);
-        municipioI = datosProcesados[departamentoI].municipios.findIndex(
-          (m: MunicipioProcesado) => m.mun === municipio.codigo
-        );
+        const { codigo } = extraerNombreCodigo(mun);
+        municipioI = datosProcesados[departamentoI].municipios.findIndex((m: MunicipioProcesado) => m.mun === codigo);
 
         if (municipioI < 0) {
           datosProcesados[departamentoI].municipios.push({
-            mun: municipio.codigo,
+            mun: codigo,
             agregados: {},
             datos: {},
           });
@@ -161,47 +130,40 @@ async function procesarTabla(indice: number) {
 
       let codigoEtnia: number | null = null;
 
-      try {
-        if (etnia) {
-          if (etnia === 'NO REPORTADO') {
-            codigoEtnia = -1;
-          } else {
-            const { codigo } = extraerNombreCodigo(etnia);
-            codigoEtnia = +codigo;
-          }
+      if (etnia) {
+        if (etnia === 'NO REPORTADO') {
+          codigoEtnia = -1;
         } else {
-          console.log(numeroFila, etnia);
+          const { codigo } = extraerNombreCodigo(etnia);
+          codigoEtnia = +codigo;
         }
-      } catch (err) {
-        console.log(etnia, err);
-        // throw new Error();
+      } else {
+        console.log(numeroFila, etnia);
       }
 
       let codigoRegimen: string | null = null;
 
-      try {
-        if (tipoRegimen) {
-          const { codigo } = extraerNombreCodigo(tipoRegimen);
-          codigoRegimen = codigo.toLowerCase();
-        }
-      } catch (err) {
-        console.log(numeroFila, tipoRegimen);
+      if (tipoRegimen) {
+        const { codigo } = extraerNombreCodigo(tipoRegimen);
+        codigoRegimen = codigo.toLowerCase();
+      } else {
+        errata[nombreTabla].errores.push(
+          `Fila ${numeroFila}: No se pudo identificar el Tipo de Régimen desde el valor ${tipoRegimen}`
+        );
       }
 
       let codigoSexo: string | null = null;
 
-      try {
-        if (sexo) {
-          if (sexo === 'FEMENINO') {
-            codigoSexo = 'f';
-          } else if (sexo === 'MASCULINO') {
-            codigoSexo = 'm';
-          } else if (sexo === 'INDETERMINADO') {
-            codigoSexo = 'i';
-          }
+      if (sexo) {
+        if (sexo === 'FEMENINO') {
+          codigoSexo = 'f';
+        } else if (sexo === 'MASCULINO') {
+          codigoSexo = 'm';
+        } else if (sexo === 'INDETERMINADO') {
+          codigoSexo = 'i';
+        } else {
+          errata[nombreTabla].errores.push(`Fila ${numeroFila}: No se pudo identificar el Sexo desde el valor ${sexo}`);
         }
-      } catch (err) {
-        console.log(numeroFila, sexo);
       }
 
       let codigoCaracterizacion: string | null = null;
@@ -297,7 +259,7 @@ async function procesarTabla(indice: number) {
 
 const RutaLimpieza: FastifyPluginAsync = async (servidor: FastifyInstance, opciones: FastifyPluginOptions) => {
   servidor.get('/excel', {}, async () => {
-    procesarTabla(9);
+    procesarTabla(0);
   });
 };
 
