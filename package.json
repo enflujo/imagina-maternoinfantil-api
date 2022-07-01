@@ -14,8 +14,8 @@
   "dependencies": {
     "@fastify/cors": "^8.0.0",
     "cli-color": "^2.0.2",
-    "cli-progress": "^3.11.1",
-    "fastify": "^4.1.0",
+    "cli-progress": "^3.11.2",
+    "fastify": "^4.2.0",
     "fastify-plugin": "^3.0.1",
     "node-emoji": "^1.11.0",
     "pg": "^8.7.3",
