@@ -88,11 +88,6 @@ async function procesarTabla(indice: number) {
 
       if (dep) {
         const { codigo } = extraerNombreCodigo(dep);
-        if (!codigo) {
-          console.log(numeroFila, fila);
-          throw new Error('No tiene código el departamento');
-        }
-
         departamentoI = datosProcesados.findIndex((d: DepartamentoProcesado) => d.dep === codigo);
 
         if (departamentoI < 0) {
@@ -105,23 +100,23 @@ async function procesarTabla(indice: number) {
         }
       } else {
         console.log(numeroFila, dep, fila);
-
         throw new Error('ERROR: Departamento');
       }
 
       let municipioI = 0;
+      const datosDepartamento = datosProcesados[departamentoI];
 
       if (mun) {
         const { codigo } = extraerNombreCodigo(mun);
-        municipioI = datosProcesados[departamentoI].municipios.findIndex((m: MunicipioProcesado) => m.mun === codigo);
+        municipioI = datosDepartamento.municipios.findIndex((m: MunicipioProcesado) => m.mun === codigo);
 
         if (municipioI < 0) {
-          datosProcesados[departamentoI].municipios.push({
+          datosDepartamento.municipios.push({
             mun: codigo,
             agregados: {},
             datos: {},
           });
-          municipioI = datosProcesados[departamentoI].municipios.length - 1;
+          municipioI = datosDepartamento.municipios.length - 1;
         }
       } else {
         console.error(numeroFila, mun);
@@ -178,33 +173,35 @@ async function procesarTabla(indice: number) {
         }
       }
 
-      if (!datosProcesados[departamentoI].agregados[año]) {
-        datosProcesados[departamentoI].agregados[año] = [0, 0, 0];
+      if (!datosDepartamento.agregados[año]) {
+        datosDepartamento.agregados[año] = [0, 0, 0];
       }
 
-      if (numerador) datosProcesados[departamentoI].agregados[año][0] += numerador;
-      if (denominador) datosProcesados[departamentoI].agregados[año][1] += denominador;
+      if (numerador) datosDepartamento.agregados[año][0] += numerador;
+      if (denominador) datosDepartamento.agregados[año][1] += denominador;
 
-      const [depNum, depDen] = datosProcesados[departamentoI].agregados[año];
+      const [depNum, depDen] = datosDepartamento.agregados[año];
       const depPorcentaje = (depNum / depDen) * 100;
-      datosProcesados[departamentoI].agregados[año][2] = redondearDecimal(depPorcentaje, 1, 2);
+      datosDepartamento.agregados[año][2] = redondearDecimal(depPorcentaje, 1, 2);
 
-      if (!datosProcesados[departamentoI].municipios[municipioI].agregados[año]) {
-        datosProcesados[departamentoI].municipios[municipioI].agregados[año] = [0, 0, 0];
+      if (!datosDepartamento.municipios[municipioI].agregados[año]) {
+        datosDepartamento.municipios[municipioI].agregados[año] = [0, 0, 0];
       }
 
-      if (numerador) datosProcesados[departamentoI].municipios[municipioI].agregados[año][0] += numerador;
-      if (denominador) datosProcesados[departamentoI].municipios[municipioI].agregados[año][1] += denominador;
+      const datosMunicipio = datosDepartamento.municipios[municipioI];
 
-      const [munNum, munDen] = datosProcesados[departamentoI].municipios[municipioI].agregados[año];
+      if (numerador) datosMunicipio.agregados[año][0] += numerador;
+      if (denominador) datosMunicipio.agregados[año][1] += denominador;
+
+      const [munNum, munDen] = datosMunicipio.agregados[año];
       const munPorcentaje = (munNum / munDen) * 100;
-      datosProcesados[departamentoI].municipios[municipioI].agregados[año][2] = redondearDecimal(munPorcentaje, 1, 2);
+      datosMunicipio.agregados[año][2] = redondearDecimal(munPorcentaje, 1, 2);
 
-      if (!datosProcesados[departamentoI].municipios[municipioI].datos[año]) {
-        datosProcesados[departamentoI].municipios[municipioI].datos[año] = [];
+      if (!datosMunicipio.datos[año]) {
+        datosMunicipio.datos[año] = [];
       }
 
-      datosProcesados[departamentoI].municipios[municipioI].datos[año].push([
+      datosMunicipio.datos[año].push([
         codigoEtnia,
         codigoRegimen,
         codigoSexo,
