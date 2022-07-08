@@ -18,7 +18,7 @@ export const esNumero = (valor: string): boolean => !isNaN(parseInt(valor));
  */
 export const guardarJSON = (json: object, nombre: string): void => {
   writeFileSync(
-    path.resolve(__dirname, `../datos/${nombre}.json`),
+    path.resolve(__dirname, `../../datos/${nombre}.json`),
     JSON.stringify(json, (_llave, valor) => (valor instanceof Set ? [...valor] : valor))
   );
 };
@@ -44,8 +44,34 @@ export const redondearDecimal = (num: number, minimo: number, maximo: number): n
   );
 
 export const extraerNombreCodigo = (texto: string): NombreCodigo => {
-  const arr = texto.split('-');
-  const codigo = arr[0].trim();
-  const nombre = arr[1].trim();
-  return { nombre, codigo };
+  if (texto) {
+    const textoComparar = texto.toLocaleLowerCase().trim();
+    if (textoComparar.includes('definido') || textoComparar.includes('reportado')) {
+      return { nombre: 'No Definido', codigo: '-1' };
+    }
+
+    if (texto.includes('-')) {
+      const arr = texto.split('-');
+      const codigo = arr[0].trim();
+      const nombre = arr[1].trim();
+      return { nombre, codigo };
+    }
+  }
+
+  console.log(`Problema al extraer nombre y código del texto: ${texto}`);
+  throw new Error();
 };
+
+/**
+ * Convierte milisegundos a texto, útil para imprimir tiempo transcurrido.
+ * @param ms Tiempo en milisegundos
+ * @returns Tiempo en formato: HH:MM:SS
+ */
+export const reloj = (ms: number): string =>
+  new Date(ms).toLocaleTimeString('en-GB', {
+    timeZone: 'Etc/UTC',
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });

@@ -1,8 +1,12 @@
-node_modules
 *.log
+
+# Carpetas locales
+node_modules
 basededatos
-api/
+api
+pgadmin
+datos/**.*
+!datos/.gitkeep
+
 .env
-src/datos/**.*
-!src/datos/.gitkeep
 .DS_Store

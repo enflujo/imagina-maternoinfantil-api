@@ -3,7 +3,7 @@
 //   agregados: {
 //     2015: [0, 0, 0],
 //   },
-//   muicipios: [
+//   municipios: [
 //     {
 //       mun: '05001',
 //       agregados: {
@@ -27,9 +27,9 @@ export type Instancia = [
   regimen: string | null,
   sexo: string | null,
   caracterizacion: string | null,
-  numerador: number,
-  denominador: number,
-  porcentaje: number
+  numerador: number | null,
+  denominador: number | null,
+  porcentaje: number | null
 ];
 
 export type MunicipioProcesado = {
@@ -59,15 +59,16 @@ export type DatosProcesados = DepartamentoProcesado[];
 
 export type DatosFuente = {
   Ano: number;
+  Indicador: string;
   Departamento: string;
   Municipio: string;
   Etnia: string;
-  Numerador: number;
-  Denominador: number;
-  Indicador: string;
-  'Tipo Régimen': string;
+  Régimen: string;
   Sexo: string;
   Caracterización: string;
+  Numerador: number;
+  Denominador: number;
+  ValorIndicador: number;
 };
 
 /**
@@ -90,4 +91,12 @@ export type DatosAño = [
 export type NombreCodigo = {
   nombre: string;
   codigo: string;
+};
+
+export type Lugar = {
+  codigo: string;
+  datos: {
+    [key: string]: Agregado;
+  };
+  dep?: string;
 };

@@ -21,6 +21,20 @@ services:
       - red-imagina
     ports:
       - ${CACHE_PUERTO}:6379
+  admin:
+    container_name: imagina-admin
+    image: 'dpage/pgadmin4'
+    ports:
+      - 5050:80
+    volumes:
+      - ./pgadmin:/var/lib/pgadmin
+    depends_on:
+      - bd
+    networks:
+      - red-imagina
+    environment:
+      PGADMIN_DEFAULT_EMAIL: 'admin@admin.com'
+      PGADMIN_DEFAULT_PASSWORD: 'admin'
 
 networks:
   red-imagina:

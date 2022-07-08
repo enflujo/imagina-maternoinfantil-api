@@ -4,7 +4,12 @@
 
 ### mortalidad neonatal temprana
 
-- Borramos porque tiene fin e inicio de tablas (Total General y de nuevo los encabezados de fila 1). Seguramente no se borraron al aplanar: desde 25992 a 25994, desde 51303 a 51306, desde 76868 a 76871, desde 102783 a 102786, desde 128868 a 128871
+- Borramos las siguientes filas, ya que tiene fin e inicio de tablas (Total General y de nuevo los encabezados de fila 1). Seguramente no se borraron al aplanar:
+  - 25992 a 25994
+  - 51303 a 51306
+  - 76868 a 76871
+  - 102783 a 102786
+  - 128868 a 128871
 
 ## Modelado
 
@@ -93,3 +98,40 @@ classDiagram
   Instancia --> "1" TipoRégimen : Contiene
   Instancia --> "1" Caracterizaciones : Contiene
 ```
+
+## PGAdmin
+
+Arreglar permiso de volumen:
+
+```bash
+sudo chown -R 5050:5050 ./pgadmin
+```
+
+### Tablas en el Excel
+
+```js
+[
+  'NACIDOS VIVOS BAJO PESO',
+  'NACIDOS VIVOS 4 CONS PRENATAL',
+  'PROMEDIO CONTROLES PRENATALES',
+  'NACIDOS VIVOS <15 PAPA 4',
+  'PARTOS INSTITUCIONALES',
+  'PARTOS POR CESAREA',
+  'NACIDOS DE <14 AÑOS',
+  'PROP NACIDOS DE MUJ 14 A 17',
+  'RAZON MORT MATERNA 1 AÑO',
+  'FECUNDIDAD 10 A 14 AÑOS',
+  'FECUNDIDAD 10 A 19 AÑOS',
+  'FECUNDIDAD 15 A 19 AÑOS',
+  'MORTALIDAD EN LA NIÑEZ',
+  'MORTALIDAD EN < 1 AÑO',
+  'MORTALIDAD < 5EDA',
+  'MORTALIDAD < 5IRA',
+  'MORTALIDAD PERINATAL',
+  'MORTALIDAD DESNUTRICI< 5',
+];
+```
+
+### Recomendaciones
+
+En Linux, abrir datos con Gnumeric.
