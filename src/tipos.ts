@@ -92,3 +92,11 @@ export type NombreCodigo = {
   nombre: string;
   codigo: string;
 };
+
+export type Lugar = {
+  codigo: string;
+  datos: {
+    [key: string]: Agregado;
+  };
+  dep?: string;
+};

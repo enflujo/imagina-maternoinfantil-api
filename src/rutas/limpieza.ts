@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions } from 'fasti
 import path from 'path';
 import fp from 'fastify-plugin';
 import errata from '../modulos/errata';
-import { DatosProcesados, DepartamentoProcesado, MunicipioProcesado } from '../tipos';
+import { DatosProcesados, DepartamentoProcesado, Lugar, MunicipioProcesado } from '../tipos';
 import { esNumero, extraerNombreCodigo, guardarJSON, redondearDecimal } from '../utilidades/ayudas';
 import { getXlsxStream } from 'xlstream';
 import barraProceso from '../modulos/barraProceso';
@@ -13,12 +13,13 @@ import { archivos } from '../utilidades/constantes';
 async function procesarTabla(indice: number) {
   const nombreTabla = archivos[indice];
   const datosProcesados: DatosProcesados = [];
+
   let numeroFila = 0;
   let total = 0;
   let barraActual: SingleBar;
 
   const flujo = await getXlsxStream({
-    filePath: path.resolve(__dirname, '../datos/NUEVA data indicadores disponibles minsaludf.xlsx'),
+    filePath: path.resolve(__dirname, '../../datos/NUEVA data indicadores disponibles minsaludf.xlsx'),
     sheet: nombreTabla,
     withHeader: false,
     ignoreEmpty: true,
@@ -219,24 +220,25 @@ async function procesarTabla(indice: number) {
   });
 
   flujo.on('close', () => {
+    const municipiosAgregados: Lugar[] = [];
+
     const departamentosAgregados = datosProcesados.map((obj) => {
+      // Extraer datos de municipios en este loop
+      obj.municipios.forEach((mun) => {
+        municipiosAgregados.push({
+          codigo: mun.mun,
+          dep: obj.dep,
+          datos: mun.agregados,
+        });
+      });
+
+      // devolver sólo datos de departamento
       return {
         codigo: obj.dep,
         datos: obj.agregados,
       };
     });
 
-    const municipiosAgregados = datosProcesados.map((obj) => {
-      return {
-        dep: obj.dep,
-        datos: obj.municipios.map((mun) => {
-          return {
-            codigo: mun.mun,
-            datos: mun.agregados,
-          };
-        }),
-      };
-    });
     guardarJSON(departamentosAgregados, `${nombreTabla}-departamentos`);
     guardarJSON(municipiosAgregados, `${nombreTabla}-municipios`);
     guardarJSON(datosProcesados, nombreTabla);

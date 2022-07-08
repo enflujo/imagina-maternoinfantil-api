@@ -5,8 +5,8 @@ node_modules
 basededatos
 api
 pgadmin
-src/datos/**.*
-!src/datos/.gitkeep
+datos/**.*
+!datos/.gitkeep
 
 .env
 .DS_Store

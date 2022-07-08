@@ -4,16 +4,15 @@
   "license": "MIT",
   "scripts": {
     "limpiar": "rimraf ./api/",
-    "copiar": "copyfiles -u 1 src/datos/*.xlsx api/",
     "build": "tsc -p tsconfig.json",
-    "dev": "yarn limpiar && yarn copiar && yarn dev:inicio",
+    "dev": "yarn limpiar && yarn dev:inicio",
     "dev:inicio": "concurrently --kill-others-on-fail --raw \"yarn dev:ts\" \"yarn dev:api\"",
     "dev:ts": "tsc -w --preserveWatchOutput",
     "dev:api": "wait-on api/index.js && nodemon api/index.js"
   },
   "dependencies": {
     "@fastify/cors": "^8.0.0",
-    "cli-color": "^2.0.2",
+    "cli-color": "^2.0.3",
     "cli-progress": "^3.11.2",
     "fastify": "^4.2.0",
     "fastify-plugin": "^3.0.1",
@@ -25,20 +24,19 @@
     "@types/cli-color": "^2.0.2",
     "@types/cli-progress": "^3.11.0",
     "@types/keyv": "^3.1.4",
-    "@types/node": "^18.0.0",
+    "@types/node": "^18.0.3",
     "@types/node-emoji": "^1.8.1",
     "@types/pg": "^8.6.5",
     "concurrently": "^7.2.2",
-    "copyfiles": "^2.4.1",
     "dotenv": "^16.0.1",
-    "nodemon": "^2.0.18",
+    "nodemon": "^2.0.19",
     "rimraf": "^3.0.2",
     "typescript": "^4.7.4",
     "wait-on": "^6.0.1"
   },
   "nodemonConfig": {
     "ignore": [
-      "./api/datos/*"
+      "./datos/*"
     ]
   }
 }
