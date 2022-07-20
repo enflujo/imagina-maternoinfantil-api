@@ -20,7 +20,7 @@
 //   ];
 // }
 
-export type Agregado = [nominador: number, denominador: number, porcentaje: number];
+export type Agregado = [numerador: number, denominador: number, porcentaje: number];
 
 export type Instancia = [
   etnia: number | null,
@@ -35,6 +35,8 @@ export type Instancia = [
 export type MunicipioProcesado = {
   /** Código del municipio */
   mun: string;
+  /** Nombre del municipio */
+  nombre?: string | null;
   /** Agregados por año del municipio */
   agregados: {
     [key: string]: Agregado;
@@ -47,12 +49,18 @@ export type MunicipioProcesado = {
 export type DepartamentoProcesado = {
   /** Código del departamento */
   dep: string;
+  /** Nombre del departamento */
+  nombre?: string | null;
   /** Agregados por año del departamento */
   agregados: {
     [key: string]: Agregado;
   };
   /** Municipios */
   municipios: MunicipioProcesado[];
+};
+
+export type AgregadoNacionalProcesado = {
+  [key: string]: Agregado;
 };
 
 export type DatosProcesados = DepartamentoProcesado[];
@@ -95,8 +103,30 @@ export type NombreCodigo = {
 
 export type Lugar = {
   codigo: string;
+  nombre?: string | null;
   datos: {
     [key: string]: Agregado;
   };
   dep?: string;
+};
+
+export type Municipio = [
+  /** Código de municipio (sin departamento): ### */
+  codigo: string,
+  /** Nombre de la ciudad o municipio */
+  nombre: string,
+  /** Código del departamento al que pertenece la ciudad o municipio: ## */
+  codigoDepartamento: string,
+  /** Código de la ciudad o municipio (incluyendo su departamento): ##### */
+  codigoCompleto: string
+];
+export type ObjetoMunicipios = {
+  llaves: string[];
+  datos: Municipio[];
+};
+
+export type Departamento = [codigo: string, nombre: string, latitud: number, longitud: number];
+export type ObjetoDepartamentos = {
+  llaves: string[];
+  datos: Departamento[];
 };

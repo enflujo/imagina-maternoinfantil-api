@@ -1,6 +1,6 @@
 import { writeFileSync } from 'fs';
 import path from 'path';
-import { NombreCodigo } from '../tipos';
+import { Agregado, NombreCodigo } from '../tipos';
 
 /**
  * Revisa si el valor de un texto contiene un número.
@@ -75,3 +75,9 @@ export const reloj = (ms: number): string =>
     minute: '2-digit',
     second: '2-digit',
   });
+
+export const actualizarPorcentaje = (agregado: Agregado) => {
+  const [numerador, denominador] = agregado;
+  const porcentaje = (numerador / denominador) * 100;
+  agregado[2] = redondearDecimal(porcentaje, 1, 2);
+};

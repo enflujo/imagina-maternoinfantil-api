@@ -2,17 +2,23 @@ import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions } from 'fasti
 import path from 'path';
 import fp from 'fastify-plugin';
 import errata from '../modulos/errata';
-import { DatosProcesados, DepartamentoProcesado, Lugar, MunicipioProcesado } from '../tipos';
-import { esNumero, extraerNombreCodigo, guardarJSON, redondearDecimal } from '../utilidades/ayudas';
+import { AgregadoNacionalProcesado, DatosProcesados, Lugar } from '../tipos';
+import { actualizarPorcentaje, esNumero, guardarJSON, redondearDecimal } from '../utilidades/ayudas';
 import { getXlsxStream } from 'xlstream';
 import barraProceso from '../modulos/barraProceso';
 import { SingleBar } from 'cli-progress';
 import agregador from '../modulos/agregador';
 import { archivos } from '../utilidades/constantes';
+import limpiarLugar from '../modulos/limpieza/lugar';
+import limpiarEtnia from '../modulos/limpieza/etnia';
+import limpiarRegimen from '../modulos/limpieza/regimen';
+import limpiarSexo from '../modulos/limpieza/sexo';
+import limpiarCaracterizacion from '../modulos/limpieza/caracterizacion';
 
 async function procesarTabla(indice: number) {
   const nombreTabla = archivos[indice];
   const datosProcesados: DatosProcesados = [];
+  const agregadoNacional: AgregadoNacionalProcesado = {};
 
   let numeroFila = 0;
   let total = 0;
@@ -85,118 +91,31 @@ async function procesarTabla(indice: number) {
         // TODO: hacer el calculo de este indicador diferente al resto
       }
 
-      let departamentoI = 0;
+      const { datosDepartamento, datosMunicipio } = limpiarLugar(datosProcesados, dep, numeroFila, mun, año);
+      const codigoEtnia = limpiarEtnia(etnia, numeroFila);
+      const codigoRegimen = limpiarRegimen(tipoRegimen, numeroFila, nombreTabla);
+      const codigoSexo = limpiarSexo(sexo, numeroFila, nombreTabla);
+      const codigoCaracterizacion = limpiarCaracterizacion(caracterizacion);
 
-      if (dep) {
-        const { codigo } = extraerNombreCodigo(dep);
-        departamentoI = datosProcesados.findIndex((d: DepartamentoProcesado) => d.dep === codigo);
-
-        if (departamentoI < 0) {
-          datosProcesados.push({
-            dep: codigo,
-            agregados: {},
-            municipios: [],
-          });
-          departamentoI = datosProcesados.length - 1;
-        }
-      } else {
-        console.log(numeroFila, dep, fila);
-        throw new Error('ERROR: Departamento');
+      if (!agregadoNacional[año]) {
+        agregadoNacional[año] = [0, 0, 0];
       }
 
-      let municipioI = 0;
-      const datosDepartamento = datosProcesados[departamentoI];
-
-      if (mun) {
-        const { codigo } = extraerNombreCodigo(mun);
-        municipioI = datosDepartamento.municipios.findIndex((m: MunicipioProcesado) => m.mun === codigo);
-
-        if (municipioI < 0) {
-          datosDepartamento.municipios.push({
-            mun: codigo,
-            agregados: {},
-            datos: {},
-          });
-          municipioI = datosDepartamento.municipios.length - 1;
-        }
-      } else {
-        console.error(numeroFila, mun);
-        throw new Error('ERROR: Municipio');
+      if (numerador) {
+        agregadoNacional[año][0] += numerador;
+        datosDepartamento.agregados[año][0] += numerador;
+        datosMunicipio.agregados[año][0] += numerador;
       }
 
-      let codigoEtnia: number | null = null;
-
-      if (etnia) {
-        if (etnia === 'NO REPORTADO') {
-          codigoEtnia = -1;
-        } else {
-          const { codigo } = extraerNombreCodigo(etnia);
-          codigoEtnia = +codigo;
-        }
-      } else {
-        console.log(numeroFila, etnia);
+      if (denominador) {
+        agregadoNacional[año][1] += denominador;
+        datosDepartamento.agregados[año][1] += denominador;
+        datosMunicipio.agregados[año][1] += denominador;
       }
 
-      let codigoRegimen: string | null = null;
-
-      if (tipoRegimen) {
-        const { codigo } = extraerNombreCodigo(tipoRegimen);
-        codigoRegimen = codigo.toLowerCase();
-      } else {
-        errata[nombreTabla].errores.push(
-          `Fila ${numeroFila}: No se pudo identificar el Tipo de Régimen desde el valor ${tipoRegimen}`
-        );
-      }
-
-      let codigoSexo: string | null = null;
-
-      if (sexo) {
-        if (sexo === 'FEMENINO') {
-          codigoSexo = 'f';
-        } else if (sexo === 'MASCULINO') {
-          codigoSexo = 'm';
-        } else if (sexo === 'INDETERMINADO') {
-          codigoSexo = 'i';
-        } else {
-          errata[nombreTabla].errores.push(`Fila ${numeroFila}: No se pudo identificar el Sexo desde el valor ${sexo}`);
-        }
-      }
-
-      let codigoCaracterizacion: string | null = null;
-
-      if (caracterizacion) {
-        if (caracterizacion === 'No Reportado') {
-          codigoCaracterizacion = 'nr';
-        } else {
-          const partes = caracterizacion.split(' ');
-          const edades = partes.filter((parte: string) => esNumero(parte));
-          codigoCaracterizacion = edades.join('-');
-        }
-      }
-
-      if (!datosDepartamento.agregados[año]) {
-        datosDepartamento.agregados[año] = [0, 0, 0];
-      }
-
-      if (numerador) datosDepartamento.agregados[año][0] += numerador;
-      if (denominador) datosDepartamento.agregados[año][1] += denominador;
-
-      const [depNum, depDen] = datosDepartamento.agregados[año];
-      const depPorcentaje = (depNum / depDen) * 100;
-      datosDepartamento.agregados[año][2] = redondearDecimal(depPorcentaje, 1, 2);
-
-      if (!datosDepartamento.municipios[municipioI].agregados[año]) {
-        datosDepartamento.municipios[municipioI].agregados[año] = [0, 0, 0];
-      }
-
-      const datosMunicipio = datosDepartamento.municipios[municipioI];
-
-      if (numerador) datosMunicipio.agregados[año][0] += numerador;
-      if (denominador) datosMunicipio.agregados[año][1] += denominador;
-
-      const [munNum, munDen] = datosMunicipio.agregados[año];
-      const munPorcentaje = (munNum / munDen) * 100;
-      datosMunicipio.agregados[año][2] = redondearDecimal(munPorcentaje, 1, 2);
+      actualizarPorcentaje(agregadoNacional[año]);
+      actualizarPorcentaje(datosDepartamento.agregados[año]);
+      actualizarPorcentaje(datosMunicipio.agregados[año]);
 
       if (!datosMunicipio.datos[año]) {
         datosMunicipio.datos[año] = [];
@@ -227,6 +146,7 @@ async function procesarTabla(indice: number) {
       obj.municipios.forEach((mun) => {
         municipiosAgregados.push({
           codigo: mun.mun,
+          // nombre: mun.nombre,
           dep: obj.dep,
           datos: mun.agregados,
         });
@@ -235,13 +155,16 @@ async function procesarTabla(indice: number) {
       // devolver sólo datos de departamento
       return {
         codigo: obj.dep,
+        // nombre: obj.nombre,
         datos: obj.agregados,
       };
     });
 
+    guardarJSON(agregadoNacional, `${nombreTabla}-pais`);
     guardarJSON(departamentosAgregados, `${nombreTabla}-departamentos`);
     guardarJSON(municipiosAgregados, `${nombreTabla}-municipios`);
     guardarJSON(datosProcesados, nombreTabla);
+
     guardarJSON(errata, 'errata');
     guardarJSON(agregador, 'agregados');
 
