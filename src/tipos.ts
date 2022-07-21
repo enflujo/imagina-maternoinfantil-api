@@ -23,7 +23,7 @@
 export type Agregado = [numerador: number, denominador: number, porcentaje: number];
 
 export type Instancia = [
-  etnia: number | null,
+  etnia: string | null,
   regimen: string | null,
   sexo: string | null,
   caracterizacion: string | null,
@@ -90,7 +90,7 @@ export type DatosAño = [
   /** Porcentaje a partir del numerador / indicador */
   porcentaje: number,
   /** Código etnia */
-  etnia: number,
+  etnia: string,
   codigoRegimen: string,
   codigoSexo: string,
   caracterizacion: string
