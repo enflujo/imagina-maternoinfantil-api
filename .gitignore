@@ -7,6 +7,8 @@ api
 pgadmin
 datos/**.*
 !datos/.gitkeep
+!datos/MunicipiosVeredas1MB.json
+!datos/departamentosFuente.json
 
 .env
 .DS_Store
