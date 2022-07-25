@@ -1,5 +1,6 @@
 import colores from 'cli-color';
 import emoji from 'node-emoji';
+import { IndicadorReferencia } from '../tipos';
 
 /**
  * Para usar otros colores, usar esta tabla para saber el número: https://robotmoon.com/256-colors/
@@ -30,23 +31,23 @@ export const parametrosBd = {
 /**
  * Nombres de las pestañas en el Excel
  */
-export const archivos = [
-  'NACIDOS VIVOS BAJO PESO',
-  'NACIDOS VIVOS 4 CONS PRENATAL',
-  'PROMEDIO CONTROLES PRENATALES',
-  'NACIDOS VIVOS <15 PAPA 4',
-  'PARTOS INSTITUCIONALES',
-  'PARTOS POR CESAREA',
-  'NACIDOS DE <14 AÑOS',
-  'PROP NACIDOS DE MUJ 14 A 17',
-  'RAZON MORT MATERNA 1 AÑO',
-  'FECUNDIDAD 10 A 14 AÑOS',
-  'FECUNDIDAD 10 A 19 AÑOS',
-  'FECUNDIDAD 15 A 19 AÑOS',
-  'MORTALIDAD EN LA NIÑEZ',
-  'MORTALIDAD EN < 1 AÑO',
-  'MORTALIDAD < 5EDA',
-  'MORTALIDAD < 5IRA',
-  'MORTALIDAD PERINATAL',
-  'MORTALIDAD DESNUTRICI< 5',
+export const archivos: IndicadorReferencia[] = [
+  { nombreTabla: 'NACIDOS VIVOS BAJO PESO', nombreArchivo: 'nacidos-bajo-peso', unidadMedida: 100 },
+  { nombreTabla: 'NACIDOS VIVOS 4 CONS PRENATAL', nombreArchivo: 'nacidos-4-controles-prenatales', unidadMedida: 100 },
+  { nombreTabla: 'PROMEDIO CONTROLES PRENATALES', nombreArchivo: 'controles-prenatales', unidadMedida: 100 },
+  { nombreTabla: 'NACIDOS VIVOS <15 PAPA 4', nombreArchivo: 'nacidos-menores15-padre4', unidadMedida: 100 },
+  { nombreTabla: 'PARTOS INSTITUCIONALES', nombreArchivo: 'partos-institucionales', unidadMedida: 100 },
+  { nombreTabla: 'PARTOS POR CESAREA', nombreArchivo: 'partos-cesarea', unidadMedida: 100 },
+  { nombreTabla: 'NACIDOS DE <14 AÑOS', nombreArchivo: 'nacidos-menores14', unidadMedida: 100 },
+  { nombreTabla: 'PROP NACIDOS DE MUJ 14 A 17', nombreArchivo: 'nacidos-mujeres14-17', unidadMedida: 100 },
+  { nombreTabla: 'RAZON MORT MATERNA 1 AÑO', nombreArchivo: 'mortalidad-materna1', unidadMedida: 100000 },
+  { nombreTabla: 'FECUNDIDAD 10 A 14 AÑOS', nombreArchivo: 'fecundidad-10-14', unidadMedida: 1000 },
+  { nombreTabla: 'FECUNDIDAD 10 A 19 AÑOS', nombreArchivo: 'fecundidad-10-19', unidadMedida: 1000 },
+  { nombreTabla: 'FECUNDIDAD 15 A 19 AÑOS', nombreArchivo: 'fecundidad-15-19', unidadMedida: 1000 },
+  { nombreTabla: 'MORTALIDAD EN LA NIÑEZ', nombreArchivo: 'mortalidad-ninez', unidadMedida: 100 },
+  { nombreTabla: 'MORTALIDAD EN < 1 AÑO', nombreArchivo: 'mortalidad-menor1', unidadMedida: 1000 },
+  { nombreTabla: 'MORTALIDAD < 5EDA', nombreArchivo: 'mortalidad-5eda', unidadMedida: 100000 },
+  { nombreTabla: 'MORTALIDAD < 5IRA', nombreArchivo: 'mortalidad-5ira', unidadMedida: 100000 },
+  { nombreTabla: 'MORTALIDAD PERINATAL', nombreArchivo: 'mortalidad-perinatal', unidadMedida: 1000 },
+  { nombreTabla: 'MORTALIDAD DESNUTRICI< 5', nombreArchivo: 'mortalidad-desnutricion', unidadMedida: 100000 },
 ];

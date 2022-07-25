@@ -34,29 +34,32 @@ export type Instancia = [
 
 export type MunicipioProcesado = {
   /** Código del municipio */
-  mun: string;
+  codigo: string;
   /** Nombre del municipio */
   nombre?: string | null;
   /** Agregados por año del municipio */
-  agregados: {
+  datos: {
     [key: string]: Agregado;
   };
-  datos: {
-    [key: string]: Instancia[];
-  };
+  // datos?: {
+  //   [key: string]: Instancia[];
+  // };
 };
 
 export type DepartamentoProcesado = {
   /** Código del departamento */
-  dep: string;
+  codigo: string;
   /** Nombre del departamento */
   nombre?: string | null;
   /** Agregados por año del departamento */
-  agregados: {
+  // agregados?: {
+  //   [key: string]: Agregado;
+  // };
+  datos: {
     [key: string]: Agregado;
   };
   /** Municipios */
-  municipios: MunicipioProcesado[];
+  municipios?: MunicipioProcesado[];
 };
 
 export type AgregadoNacionalProcesado = {
@@ -129,4 +132,10 @@ export type Departamento = [codigo: string, nombre: string, latitud: number, lon
 export type ObjetoDepartamentos = {
   llaves: string[];
   datos: Departamento[];
+};
+
+export type IndicadorReferencia = {
+  nombreTabla: string;
+  nombreArchivo: string;
+  unidadMedida: number;
 };

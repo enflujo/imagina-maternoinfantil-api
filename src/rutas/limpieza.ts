@@ -2,8 +2,8 @@ import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions } from 'fasti
 import path from 'path';
 import fp from 'fastify-plugin';
 import errata from '../modulos/errata';
-import { AgregadoNacionalProcesado, DatosProcesados, Lugar } from '../tipos';
-import { actualizarPorcentaje, esNumero, guardarJSON, redondearDecimal } from '../utilidades/ayudas';
+import { AgregadoNacionalProcesado, DepartamentoProcesado, MunicipioProcesado } from '../tipos';
+import { actualizarPorcentaje, esNumero, guardarJSON } from '../utilidades/ayudas';
 import { getXlsxStream } from 'xlstream';
 import barraProceso from '../modulos/barraProceso';
 import { SingleBar } from 'cli-progress';
@@ -16,16 +16,17 @@ import limpiarSexo from '../modulos/limpieza/sexo';
 import limpiarCaracterizacion from '../modulos/limpieza/caracterizacion';
 
 async function procesarTabla(indice: number) {
-  const nombreTabla = archivos[indice];
-  const datosProcesados: DatosProcesados = [];
+  const { nombreTabla, nombreArchivo, unidadMedida } = archivos[indice];
   const agregadoNacional: AgregadoNacionalProcesado = {};
+  const agregadoDepartamental: DepartamentoProcesado[] = [];
+  const agregadoMunicipal: MunicipioProcesado[] = [];
 
   let numeroFila = 0;
   let total = 0;
   let barraActual: SingleBar;
 
   const flujo = await getXlsxStream({
-    filePath: path.resolve(__dirname, '../../datos/NUEVA data indicadores disponibles minsaludf.xlsx'),
+    filePath: path.resolve(__dirname, '../../datos/fuentes/NUEVA data indicadores disponibles minsaludf.xlsx'),
     sheet: nombreTabla,
     withHeader: false,
     ignoreEmpty: true,
@@ -91,8 +92,15 @@ async function procesarTabla(indice: number) {
         // TODO: hacer el calculo de este indicador diferente al resto
       }
 
-      const { datosDepartamento, datosMunicipio } = limpiarLugar(datosProcesados, dep, numeroFila, mun, año);
-      const codigoEtnia = limpiarEtnia(etnia, numeroFila);
+      const { datosDepartamento, datosMunicipio } = limpiarLugar(
+        agregadoDepartamental,
+        agregadoMunicipal,
+        dep,
+        mun,
+        numeroFila,
+        año
+      );
+      const dEtnia = limpiarEtnia(etnia, numeroFila);
       const codigoRegimen = limpiarRegimen(tipoRegimen, numeroFila, nombreTabla);
       const codigoSexo = limpiarSexo(sexo, numeroFila, nombreTabla);
       const codigoCaracterizacion = limpiarCaracterizacion(caracterizacion);
@@ -103,33 +111,33 @@ async function procesarTabla(indice: number) {
 
       if (numerador) {
         agregadoNacional[año][0] += numerador;
-        datosDepartamento.agregados[año][0] += numerador;
-        datosMunicipio.agregados[año][0] += numerador;
+        datosDepartamento[0] += numerador;
+        datosMunicipio[0] += numerador;
       }
 
       if (denominador) {
         agregadoNacional[año][1] += denominador;
-        datosDepartamento.agregados[año][1] += denominador;
-        datosMunicipio.agregados[año][1] += denominador;
+        datosDepartamento[1] += denominador;
+        datosMunicipio[1] += denominador;
       }
 
-      actualizarPorcentaje(agregadoNacional[año]);
-      actualizarPorcentaje(datosDepartamento.agregados[año]);
-      actualizarPorcentaje(datosMunicipio.agregados[año]);
+      actualizarPorcentaje(agregadoNacional[año], unidadMedida);
+      actualizarPorcentaje(datosDepartamento, unidadMedida);
+      actualizarPorcentaje(datosMunicipio, unidadMedida);
 
-      if (!datosMunicipio.datos[año]) {
-        datosMunicipio.datos[año] = [];
-      }
+      // if (!datosMunicipio.datos[año]) {
+      //   datosMunicipio.datos[año] = [];
+      // }
 
-      datosMunicipio.datos[año].push([
-        codigoEtnia,
-        codigoRegimen,
-        codigoSexo,
-        codigoCaracterizacion,
-        numerador,
-        denominador,
-        numerador && denominador ? redondearDecimal((numerador / denominador) * 100, 1, 2) : null,
-      ]);
+      // datosMunicipio.datos[año].push([
+      //   dEtnia.codigo,
+      //   codigoRegimen,
+      //   codigoSexo,
+      //   codigoCaracterizacion,
+      //   numerador,
+      //   denominador,
+      //   numerador && denominador ? redondearDecimal((numerador / denominador) * 100, 1, 2) : null,
+      // ]);
 
       errata[nombreTabla].procesados++;
       barraActual.update(fila.processedSheetSize, { terminado: false });
@@ -139,34 +147,13 @@ async function procesarTabla(indice: number) {
   });
 
   flujo.on('close', () => {
-    const municipiosAgregados: Lugar[] = [];
+    guardarJSON(agregadoNacional, `${nombreArchivo}-pais`);
+    guardarJSON(agregadoDepartamental, `${nombreArchivo}-departamentos`);
+    guardarJSON(agregadoMunicipal, `${nombreArchivo}-municipios`);
+    // guardarJSON(datosProcesados, nombreTabla);
 
-    const departamentosAgregados = datosProcesados.map((obj) => {
-      // Extraer datos de municipios en este loop
-      obj.municipios.forEach((mun) => {
-        municipiosAgregados.push({
-          codigo: mun.mun,
-          // nombre: mun.nombre,
-          dep: obj.dep,
-          datos: mun.agregados,
-        });
-      });
-
-      // devolver sólo datos de departamento
-      return {
-        codigo: obj.dep,
-        // nombre: obj.nombre,
-        datos: obj.agregados,
-      };
-    });
-
-    guardarJSON(agregadoNacional, `${nombreTabla}-pais`);
-    guardarJSON(departamentosAgregados, `${nombreTabla}-departamentos`);
-    guardarJSON(municipiosAgregados, `${nombreTabla}-municipios`);
-    guardarJSON(datosProcesados, nombreTabla);
-
-    guardarJSON(errata, 'errata');
-    guardarJSON(agregador, 'agregados');
+    guardarJSON(errata, '_errata');
+    guardarJSON(agregador, '_agregados');
 
     barraActual.update(total, { terminado: true });
     barraActual.stop();

@@ -1,14 +1,5 @@
-import { Options as ProgressOptions, Params as ProgressParams, MultiBar, SingleBar } from 'cli-progress';
-import {
-  logAviso,
-  logCyan,
-  logVerde,
-  chulo,
-  logBloque,
-  gorila,
-  conector,
-  logNaranjaPulso,
-} from '../utilidades/constantes';
+import { Options as ProgressOptions, Params as ProgressParams, SingleBar } from 'cli-progress';
+import { logAviso, logCyan, logVerde, chulo, logBloque, gorila } from '../utilidades/constantes';
 import { reloj } from '../utilidades/ayudas';
 
 type ProgressPayload = {

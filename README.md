@@ -135,3 +135,17 @@ sudo chown -R 5050:5050 ./pgadmin
 ### Recomendaciones
 
 En Linux, abrir datos con Gnumeric.
+
+### Desarrollo
+
+Hacer cambios en la estructura de los datos
+
+```bash
+yarn prisma:push
+```
+
+Borrar todos los datos
+
+```bash
+yarn prisma:borrar
+```

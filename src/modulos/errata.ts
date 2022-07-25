@@ -1,3 +1,4 @@
+import { IndicadorReferencia } from '../tipos';
 import { archivos } from '../utilidades/constantes';
 
 export type Tablas = {
@@ -12,8 +13,8 @@ export type Tablas = {
 
 const errata: Tablas = {};
 
-archivos.forEach((nombreTabla: string) => {
-  errata[nombreTabla] = {
+archivos.forEach((indicador: IndicadorReferencia) => {
+  errata[indicador.nombreTabla] = {
     sinPorcentaje: 0,
     procesados: 0,
     numeradorMayorQueDenominador: 0,

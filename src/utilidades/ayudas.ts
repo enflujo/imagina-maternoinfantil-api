@@ -18,7 +18,7 @@ export const esNumero = (valor: string): boolean => !isNaN(parseInt(valor));
  */
 export const guardarJSON = (json: object, nombre: string): void => {
   writeFileSync(
-    path.resolve(__dirname, `../../datos/${nombre}.json`),
+    path.resolve(__dirname, `../../datos/exportados/${nombre}.json`),
     JSON.stringify(json, (_llave, valor) => (valor instanceof Set ? [...valor] : valor))
   );
 };
@@ -76,8 +76,8 @@ export const reloj = (ms: number): string =>
     second: '2-digit',
   });
 
-export const actualizarPorcentaje = (agregado: Agregado) => {
+export const actualizarPorcentaje = (agregado: Agregado, unidadMedida: number = 100) => {
   const [numerador, denominador] = agregado;
-  const porcentaje = (numerador / denominador) * 100;
+  const porcentaje = (numerador / denominador) * unidadMedida;
   agregado[2] = redondearDecimal(porcentaje, 1, 2);
 };

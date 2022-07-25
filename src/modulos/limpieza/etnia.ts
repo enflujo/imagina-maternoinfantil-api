@@ -1,14 +1,13 @@
 import { extraerNombreCodigo } from '../../utilidades/ayudas';
 
 export default (etnia: string, numeroFila: number) => {
-  let codigoEtnia: string | null = null;
+  let codigoEtnia = { nombre: null, codigo: null };
 
   if (etnia) {
     if (etnia === 'NO REPORTADO') {
-      codigoEtnia = '-1';
+      return { nombre: etnia, codigo: '-1' };
     } else {
-      const { codigo } = extraerNombreCodigo(etnia);
-      codigoEtnia = codigo;
+      return extraerNombreCodigo(etnia);
     }
   } else {
     console.log(numeroFila, etnia);

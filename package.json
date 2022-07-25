@@ -9,16 +9,22 @@
     "dev:inicio": "concurrently --kill-others-on-fail --raw \"yarn dev:ts\" \"yarn dev:api\"",
     "dev:ts": "tsc -w --preserveWatchOutput",
     "dev:api": "wait-on api/index.js && nodemon api/index.js",
-    "prisma:format": "prisma format --schema ./prisma/esquema.prisma",
-    "prisma:migrate": "prisma migrate dev --name inicio --schema ./prisma/esquema.prisma",
-    "prisma:push": "prisma db push --schema ./prisma/esquema.prisma"
+    "lint": "prettier --check .",
+    "lint:fix": "prettier --write --list-different .",
+    "prisma:format": "prisma format",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev --name inicio",
+    "prisma:push": "prisma db push",
+    "prisma:seed": "prisma db seed",
+    "prisma:borrar": "ts-node ./src/prisma/borrarTodo.ts",
+    "limpiar:exportados": "rimraf ./datos/exportados/**/*"
   },
   "dependencies": {
     "@fastify/cors": "^8.0.0",
     "@prisma/client": "4.1.0",
     "cli-color": "^2.0.3",
     "cli-progress": "^3.11.2",
-    "fastify": "^4.2.1",
+    "fastify": "^4.3.0",
     "fastify-plugin": "^4.0.0",
     "node-emoji": "^1.11.0",
     "pg": "^8.7.3",
@@ -34,6 +40,7 @@
     "concurrently": "^7.3.0",
     "dotenv": "^16.0.1",
     "nodemon": "^2.0.19",
+    "prettier": "^2.7.1",
     "prisma": "^4.1.0",
     "rimraf": "^3.0.2",
     "ts-node": "^10.9.1",
@@ -46,6 +53,7 @@
     ]
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "schema": "src/prisma/esquema.prisma",
+    "seed": "ts-node src/prisma/seed.ts"
   }
 }
