@@ -34,7 +34,7 @@ export const parametrosBd = {
 export const archivos: IndicadorReferencia[] = [
   { nombreTabla: 'NACIDOS VIVOS BAJO PESO', nombreArchivo: 'nacidos-bajo-peso', unidadMedida: 100 },
   { nombreTabla: 'NACIDOS VIVOS 4 CONS PRENATAL', nombreArchivo: 'nacidos-4-controles-prenatales', unidadMedida: 100 },
-  { nombreTabla: 'PROMEDIO CONTROLES PRENATALES', nombreArchivo: 'controles-prenatales', unidadMedida: 100 },
+  // { nombreTabla: 'PROMEDIO CONTROLES PRENATALES', nombreArchivo: 'controles-prenatales', unidadMedida: 100 },
   { nombreTabla: 'NACIDOS VIVOS <15 PAPA 4', nombreArchivo: 'nacidos-menores15-padre4', unidadMedida: 100 },
   { nombreTabla: 'PARTOS INSTITUCIONALES', nombreArchivo: 'partos-institucionales', unidadMedida: 100 },
   { nombreTabla: 'PARTOS POR CESAREA', nombreArchivo: 'partos-cesarea', unidadMedida: 100 },
@@ -44,7 +44,7 @@ export const archivos: IndicadorReferencia[] = [
   { nombreTabla: 'FECUNDIDAD 10 A 14 AÑOS', nombreArchivo: 'fecundidad-10-14', unidadMedida: 1000 },
   { nombreTabla: 'FECUNDIDAD 10 A 19 AÑOS', nombreArchivo: 'fecundidad-10-19', unidadMedida: 1000 },
   { nombreTabla: 'FECUNDIDAD 15 A 19 AÑOS', nombreArchivo: 'fecundidad-15-19', unidadMedida: 1000 },
-  { nombreTabla: 'MORTALIDAD EN LA NIÑEZ', nombreArchivo: 'mortalidad-ninez', unidadMedida: 100 },
+  { nombreTabla: 'MORTALIDAD EN LA NIÑEZ', nombreArchivo: 'mortalidad-ninez', unidadMedida: 1000 },
   { nombreTabla: 'MORTALIDAD EN < 1 AÑO', nombreArchivo: 'mortalidad-menor1', unidadMedida: 1000 },
   { nombreTabla: 'MORTALIDAD < 5EDA', nombreArchivo: 'mortalidad-5eda', unidadMedida: 100000 },
   { nombreTabla: 'MORTALIDAD < 5IRA', nombreArchivo: 'mortalidad-5ira', unidadMedida: 100000 },
