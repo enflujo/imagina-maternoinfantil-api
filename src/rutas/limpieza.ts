@@ -14,6 +14,7 @@ import limpiarEtnia from '../modulos/limpieza/etnia';
 import limpiarRegimen from '../modulos/limpieza/regimen';
 import limpiarSexo from '../modulos/limpieza/sexo';
 import limpiarCaracterizacion from '../modulos/limpieza/caracterizacion';
+import limpiarGeojson from '../modulos/limpieza/geojson';
 
 async function procesarTabla(indice: number) {
   const { nombreTabla, nombreArchivo, unidadMedida } = archivos[indice];
@@ -33,9 +34,6 @@ async function procesarTabla(indice: number) {
   });
 
   flujo.on('data', (fila) => {
-    // Omitir filas que tienen información que no corresponde a los datos (ejemplo: TOTALES al final)
-    if (Object.keys(fila.raw.obj).length <= 4) return;
-
     // Si es la primera fila, iniciar barra de proceso
     if (numeroFila === 0) {
       total = fila.totalSheetSize;
@@ -46,9 +44,11 @@ async function procesarTabla(indice: number) {
         terminado: false,
       });
     }
-
     // Contador para saber en que fila de Excel estamos, útil para buscar errores directo en el Excel.
     numeroFila++;
+
+    // Omitir filas que tienen información que no corresponde a los datos (ejemplo: TOTALES al final)
+    if (Object.keys(fila.raw.obj).length <= 4) return;
 
     // Particularidad de este Excel, todas las tablas empiezan en la fila 4
     if (numeroFila >= 3) {
@@ -169,6 +169,7 @@ async function procesarTabla(indice: number) {
 const RutaLimpieza: FastifyPluginAsync = async (servidor: FastifyInstance, opciones: FastifyPluginOptions) => {
   servidor.get('/excel', {}, async () => {
     procesarTabla(0);
+    limpiarGeojson();
   });
 };
 
