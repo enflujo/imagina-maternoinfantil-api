@@ -1,5 +1,5 @@
 import { IndicadorReferencia } from '../tipos';
-import { archivos } from '../utilidades/constantes';
+import { archivos, rips } from '../utilidades/constantes';
 
 export type Tablas = {
   [key: string]: {
@@ -12,8 +12,9 @@ export type Tablas = {
 };
 
 const errata: Tablas = {};
+const todosLosArchivos = [...archivos, ...rips];
 
-archivos.forEach((indicador: IndicadorReferencia) => {
+todosLosArchivos.forEach((indicador: IndicadorReferencia) => {
   errata[indicador.nombreTabla] = {
     sinPorcentaje: 0,
     procesados: 0,

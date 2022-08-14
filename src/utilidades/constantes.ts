@@ -51,3 +51,11 @@ export const archivos: IndicadorReferencia[] = [
   { nombreTabla: 'MORTALIDAD PERINATAL', nombreArchivo: 'mortalidad-perinatal', unidadMedida: 1000 },
   { nombreTabla: 'MORTALIDAD DESNUTRICI< 5', nombreArchivo: 'mortalidad-desnutricion', unidadMedida: 100000 },
 ];
+
+export const rips: IndicadorReferencia[] = [
+  { nombreTabla: 'control < 5 años', nombreArchivo: 'control-5', unidadMedida: 100 },
+  { nombreTabla: 'sifilis', nombreArchivo: 'sifilis', unidadMedida: 100 },
+  { nombreTabla: 'trasmision sexual', nombreArchivo: 'trasmision-sexual', unidadMedida: 100 },
+  { nombreTabla: 'maltrato', nombreArchivo: 'maltrato', unidadMedida: 100 },
+  { nombreTabla: 'asesoria anticoncepcion', nombreArchivo: 'asesoria-anticoncepcion', unidadMedida: 100 },
+];
