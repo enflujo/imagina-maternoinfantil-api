@@ -136,16 +136,12 @@ sudo chown -R 5050:5050 ./pgadmin
 
 En Linux, abrir datos con Gnumeric.
 
-### Desarrollo
-
-Hacer cambios en la estructura de los datos
+### Exportar datos para descarga
 
 ```bash
-yarn prisma:push
-```
-
-Borrar todos los datos
-
-```bash
-yarn prisma:borrar
+ssconvert \
+--export-type=Gnumeric_stf:stf_assistant \
+--export-file-per-sheet \
+--export-options='format=raw quoting-mode=auto quoting-on-whitespace=FALSE separator=,' \
+./indicadores_minsaludf.xlsx '%n-%s.csv'
 ```
