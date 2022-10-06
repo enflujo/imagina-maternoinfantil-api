@@ -1,5 +1,5 @@
-import { DepartamentoProcesado, MunicipioProcesado } from '../../tipos';
-import { extraerNombreCodigo } from '../../utilidades/ayudas';
+import { DatosEtnia, DepartamentoProcesado, MunicipioProcesado } from '../../tipos';
+import { extraerNombreCodigo, iniciarEtnias } from '../../utilidades/ayudas';
 import { departamentos, municipios } from '../../utilidades/lugaresColombia';
 
 export default (
@@ -8,7 +8,8 @@ export default (
   dep: string | null,
   mun: string | null,
   numeroFila: Number,
-  año: string
+  año: string,
+  dEtnia: DatosEtnia
 ) => {
   let departamentoI = 0;
 
@@ -23,12 +24,20 @@ export default (
         codigo,
         nombre,
         datos: {},
-        // municipios: [],
+        etnias: iniciarEtnias(),
+        min: 0,
+        max: 0,
       });
       departamentoI = agregadoDepartamental.length - 1;
     }
   } else {
-    throw new Error('ERROR: Departamento');
+    throw new Error(
+      JSON.stringify({
+        error: 'ERROR: Departamento',
+        dep,
+        fila: numeroFila,
+      })
+    );
   }
 
   let municipioI = 0;
@@ -45,6 +54,8 @@ export default (
         codigo,
         nombre,
         datos: {},
+        min: 0,
+        max: 0,
       });
       municipioI = agregadoMunicipal.length - 1;
     }
@@ -58,10 +69,21 @@ export default (
   if (!datosDepartamento.datos[año]) {
     datosDepartamento.datos[año] = [0, 0, 0];
   }
+  if (dEtnia.codigo) {
+    if (!datosDepartamento.etnias[dEtnia.codigo].datos[año]) {
+      datosDepartamento.etnias[dEtnia.codigo].datos[año] = [0, 0, 0];
+    }
+  }
 
   if (!datosMunicipio.datos[año]) {
     datosMunicipio.datos[año] = [0, 0, 0];
   }
 
-  return { datosDepartamento: datosDepartamento.datos[año], datosMunicipio: datosMunicipio.datos[año] };
+  const etniaDepartamento = dEtnia.codigo ? datosDepartamento.etnias[dEtnia.codigo].datos[año] : null;
+
+  return {
+    datosDepartamento: datosDepartamento.datos[año],
+    datosMunicipio: datosMunicipio.datos[año],
+    etniaDepartamento,
+  };
 };

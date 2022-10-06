@@ -1,9 +1,19 @@
+import { readdir } from 'fs/promises';
+
 import { FastifyInstance, FastifyPluginAsync, FastifyPluginOptions } from 'fastify';
 import path from 'path';
 import fp from 'fastify-plugin';
 import errata from '../modulos/errata';
-import { AgregadoNacionalProcesado, DepartamentoProcesado, MunicipioProcesado } from '../tipos';
-import { actualizarPorcentaje, esNumero, guardarJSON } from '../utilidades/ayudas';
+import {
+  Agregado,
+  AgregadoNacionalProcesado,
+  DatosPorAño,
+  DepartamentoProcesado,
+  MunicipioProcesado,
+  VariablesRips,
+  VariablesVvee,
+} from '../tipos';
+import { actualizarPorcentaje, guardarJSON, iniciarEtnias } from '../utilidades/ayudas';
 import { getXlsxStream } from 'xlstream';
 import barraProceso from '../modulos/barraProceso';
 import { SingleBar } from 'cli-progress';
@@ -16,9 +26,30 @@ import limpiarSexo from '../modulos/limpieza/sexo';
 import limpiarCaracterizacion from '../modulos/limpieza/caracterizacion';
 import limpiarGeojson from '../modulos/limpieza/geojson';
 
+const calcularMinMax = (agregados: DatosPorAño) => {
+  let min = Infinity;
+  let max = 0;
+  for (let año in agregados) {
+    const valor = agregados[año][2];
+    min = valor < min ? valor : min;
+    max = valor > max ? valor : max;
+  }
+
+  return { min, max };
+};
+
 async function procesarTabla(indice: number) {
   const { nombreTabla, nombreArchivo, unidadMedida } = archivos[indice];
-  const agregadoNacional: AgregadoNacionalProcesado = {};
+  const ruta = path.resolve(__dirname, `../../datos/fuentes/xlsx/${nombreTabla}.xlsx`);
+  const esEevv = nombreTabla.includes('EEVV');
+  const esRips = nombreTabla.includes('RIPS');
+
+  const agregadoNacional: AgregadoNacionalProcesado = {
+    datos: {},
+    etnias: iniciarEtnias(),
+    min: 0,
+    max: 0,
+  };
   const agregadoDepartamental: DepartamentoProcesado[] = [];
   const agregadoMunicipal: MunicipioProcesado[] = [];
 
@@ -27,13 +58,40 @@ async function procesarTabla(indice: number) {
   let barraActual: SingleBar;
 
   const flujo = await getXlsxStream({
-    filePath: path.resolve(__dirname, '../../datos/fuentes/NUEVA data indicadores disponibles minsaludf.xlsx'),
-    sheet: nombreTabla,
-    withHeader: false,
+    filePath: ruta,
+    sheet: 'datos',
+    withHeader: true,
     ignoreEmpty: true,
   });
 
   flujo.on('data', (fila) => {
+    const sumarNumerador = (numerador: number) => {
+      agregadoNacional.datos[año][0] += numerador;
+      datosDepartamento[0] += numerador;
+      datosMunicipio[0] += numerador;
+
+      if (etniaPais) {
+        etniaPais[0] += numerador;
+      }
+
+      if (etniaDepartamento) {
+        etniaDepartamento[0] += numerador;
+      }
+    };
+
+    const sumarDenominador = (denominador: number) => {
+      agregadoNacional.datos[año][1] += denominador;
+      datosDepartamento[1] += denominador;
+      datosMunicipio[1] += denominador;
+
+      if (etniaPais) {
+        etniaPais[1] += denominador;
+      }
+
+      if (etniaDepartamento) {
+        etniaDepartamento[1] += denominador;
+      }
+    };
     // Si es la primera fila, iniciar barra de proceso
     if (numeroFila === 0) {
       total = fila.totalSheetSize;
@@ -44,116 +102,119 @@ async function procesarTabla(indice: number) {
         terminado: false,
       });
     }
+
     // Contador para saber en que fila de Excel estamos, útil para buscar errores directo en el Excel.
     numeroFila++;
 
     // Omitir filas que tienen información que no corresponde a los datos (ejemplo: TOTALES al final)
     if (Object.keys(fila.raw.obj).length <= 4) return;
 
-    // Particularidad de este Excel, todas las tablas empiezan en la fila 4
-    if (numeroFila >= 3) {
-      // En este punto hay una fila con datos, sumamos al total en errata para saber cuantos hay registrados en total.
-      errata[nombreTabla].total++;
+    // En este punto hay una fila con datos, sumamos al total en errata para saber cuantos hay registrados en total.
+    errata[nombreTabla].total++;
+    /**
+     * Las variables (columnas) disponibles en el Excel.
+     */
 
-      /**
-       * Las variables (columnas) disponibles en el Excel.
-       */
-      const año = fila.formatted.obj.A;
-      const dep = fila.formatted.obj.C;
-      const mun = fila.formatted.obj.D;
-      const etnia = fila.formatted.obj.E;
-      const tipoRegimen = fila.formatted.obj.F;
-      const sexo = fila.formatted.obj.G;
-      const caracterizacion = fila.formatted.obj.H;
-      const nume = fila.formatted.obj.I;
-      const deno = fila.formatted.obj.J;
+    const año = fila.formatted.obj.anno;
+    const dep = fila.formatted.obj.departamento;
+    const mun = fila.formatted.obj.municipio;
+    const etnia = fila.formatted.obj.etnia;
+    const tipoRegimen = fila.formatted.obj.regimen;
 
+    agregador.etnias.add(etnia);
+    agregador.regimen.add(tipoRegimen);
+
+    const dEtnia = limpiarEtnia(etnia, numeroFila, esRips);
+    const { datosDepartamento, datosMunicipio, etniaDepartamento } = limpiarLugar(
+      agregadoDepartamental,
+      agregadoMunicipal,
+      dep,
+      mun,
+      numeroFila,
+      año,
+      dEtnia
+    );
+
+    let etniaPais: Agregado | null = null;
+
+    if (!agregadoNacional.datos[año]) {
+      agregadoNacional.datos[año] = [0, 0, 0];
+
+      if (dEtnia.codigo) {
+        if (!agregadoNacional.etnias[dEtnia.codigo].datos[año]) {
+          agregadoNacional.etnias[dEtnia.codigo].datos[año] = [0, 0, 0];
+          etniaPais = agregadoNacional.etnias[dEtnia.codigo].datos[año];
+        }
+      }
+    }
+
+    if (esEevv) {
+      const datosFila: VariablesVvee = fila.formatted.obj;
+      const numerador = datosFila.numerador;
+      const denominador = datosFila.denominador;
+      const caracterizacion = datosFila.caracterizacion;
+      const sexo = datosFila.sexo;
+      // const codigoRegimen = limpiarRegimen(tipoRegimen, numeroFila, nombreTabla);
+      // const codigoSexo = limpiarSexo(sexo, numeroFila, nombreTabla);
+      // const codigoCaracterizacion = limpiarCaracterizacion(caracterizacion);
       agregador.caracterizaciones.add(caracterizacion);
-      agregador.etnias.add(etnia);
-      agregador.regimen.add(tipoRegimen);
       agregador.sexo.add(sexo);
 
-      const numerador = esNumero(nume) ? +nume : null;
-      const denominador = esNumero(deno) ? +deno : null;
-
-      if (nombreTabla !== 'PROMEDIO CONTROLES PRENATALES') {
-        if (numerador && denominador) {
-          if (numerador > denominador) {
-            errata[nombreTabla].numeradorMayorQueDenominador++;
-            errata[nombreTabla].errores.push(
-              `Fila ${numeroFila}: ${numerador} (Numerador) es > que ${denominador} (denominador)`
-            );
-            // console.log(`Numerador (${numerador}) es > que denominador (${denominador})`);
-            // throw new Error(JSON.stringify(fila, null, 2));
-            // return;
-          }
-        }
-      } else {
-        // TODO: hacer el calculo de este indicador diferente al resto
-      }
-
-      const { datosDepartamento, datosMunicipio } = limpiarLugar(
-        agregadoDepartamental,
-        agregadoMunicipal,
-        dep,
-        mun,
-        numeroFila,
-        año
-      );
-      const dEtnia = limpiarEtnia(etnia, numeroFila);
-      const codigoRegimen = limpiarRegimen(tipoRegimen, numeroFila, nombreTabla);
-      const codigoSexo = limpiarSexo(sexo, numeroFila, nombreTabla);
-      const codigoCaracterizacion = limpiarCaracterizacion(caracterizacion);
-
-      if (!agregadoNacional[año]) {
-        agregadoNacional[año] = [0, 0, 0];
-      }
-
       if (numerador) {
-        agregadoNacional[año][0] += numerador;
-        datosDepartamento[0] += numerador;
-        datosMunicipio[0] += numerador;
+        sumarNumerador(numerador);
       }
 
       if (denominador) {
-        agregadoNacional[año][1] += denominador;
-        datosDepartamento[1] += denominador;
-        datosMunicipio[1] += denominador;
+        sumarDenominador(denominador);
       }
+    } else if (esRips) {
+      const datosFila: VariablesRips = fila.formatted.obj;
+      const { tipo, valor } = datosFila;
 
-      actualizarPorcentaje(agregadoNacional[año], unidadMedida);
-      actualizarPorcentaje(datosDepartamento, unidadMedida);
-      actualizarPorcentaje(datosMunicipio, unidadMedida);
-
-      // if (!datosMunicipio.datos[año]) {
-      //   datosMunicipio.datos[año] = [];
-      // }
-
-      // datosMunicipio.datos[año].push([
-      //   dEtnia.codigo,
-      //   codigoRegimen,
-      //   codigoSexo,
-      //   codigoCaracterizacion,
-      //   numerador,
-      //   denominador,
-      //   numerador && denominador ? redondearDecimal((numerador / denominador) * 100, 1, 2) : null,
-      // ]);
-
-      errata[nombreTabla].procesados++;
-      barraActual.update(fila.processedSheetSize, { terminado: false });
-    } else {
-      // console.log(fila);
+      if (valor) {
+        if (tipo === 'numerador') {
+          sumarNumerador(valor);
+        } else if (tipo === 'denominador') {
+          sumarDenominador(valor);
+        } else {
+          console.error(numeroFila, valor, valor);
+        }
+      }
     }
+
+    actualizarPorcentaje(agregadoNacional.datos[año], unidadMedida);
+    actualizarPorcentaje(datosDepartamento, unidadMedida);
+    actualizarPorcentaje(datosMunicipio, unidadMedida);
+
+    if (etniaPais) {
+      actualizarPorcentaje(etniaPais, unidadMedida);
+    }
+
+    if (etniaDepartamento) {
+      actualizarPorcentaje(etniaDepartamento, unidadMedida);
+    }
+
+    errata[nombreTabla].procesados++;
+    barraActual.update(fila.processedSheetSize, { terminado: false });
   });
 
   flujo.on('close', () => {
-    guardarJSON(agregadoNacional, `${nombreArchivo}-pais`);
-    guardarJSON(agregadoDepartamental, `${nombreArchivo}-departamentos`);
-    guardarJSON(agregadoMunicipal, `${nombreArchivo}-municipios`);
-    // guardarJSON(datosProcesados, nombreTabla);
+    agregarExtremos(agregadoNacional);
 
-    guardarJSON(errata, '_errata');
-    guardarJSON(agregador, '_agregados');
+    agregadoDepartamental.forEach((datosDep) => {
+      agregarExtremos(datosDep);
+    });
+
+    agregadoMunicipal.forEach((datosMun) => {
+      agregarExtremos(datosMun);
+    });
+
+    // guardarJSON(agregadoNacional, `${nombreArchivo}-pais`);
+    // guardarJSON(agregadoDepartamental, `${nombreArchivo}-departamentos`);
+    // guardarJSON(agregadoMunicipal, `${nombreArchivo}-municipios`);
+
+    // guardarJSON(errata, '_errata');
+    // guardarJSON(agregador, '_agregados');
 
     barraActual.update(total, { terminado: true });
     barraActual.stop();
@@ -164,6 +225,27 @@ async function procesarTabla(indice: number) {
       console.log('------------- FIN --------------');
     }
   });
+}
+
+const agregarExtremos = (agregado: AgregadoNacionalProcesado | DepartamentoProcesado | MunicipioProcesado) => {
+  const extremos = calcularMinMax(agregado.datos);
+  agregado.min = extremos.min;
+  agregado.max = extremos.max;
+
+  if (agregado.etnias) {
+    for (let codigoEtnia in agregado.etnias) {
+      const datosEtnia = agregado.etnias[codigoEtnia];
+      const extremosEtnia = calcularMinMax(datosEtnia.datos);
+      datosEtnia.min = extremosEtnia.min;
+      datosEtnia.max = extremosEtnia.max;
+    }
+  }
+
+  return agregado;
+};
+
+async function procesarArchivo(ruta: string) {
+  console.log(ruta);
 }
 
 const RutaLimpieza: FastifyPluginAsync = async (servidor: FastifyInstance, opciones: FastifyPluginOptions) => {

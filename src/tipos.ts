@@ -1,36 +1,9 @@
-// {
-//   dep: '05',
-//   agregados: {
-//     2015: [0, 0, 0],
-//   },
-//   municipios: [
-//     {
-//       mun: '05001',
-//       agregados: {
-//         2015: [0, 0, 0],
-//       },
-//       datos: {
-//         2015: [
-//           [1, 'c', 'f', 'nr', 0, 1],
-//           [1, 'c', 'm', 'nr', 0, 3],
-//         ],
-//         2016: [[], []],
-//       },
-//     },
-//   ];
-// }
-
-export type Agregado = [numerador: number, denominador: number, porcentaje: number];
-
-export type Instancia = [
-  etnia: string | null,
-  regimen: string | null,
-  sexo: string | null,
-  caracterizacion: string | null,
-  numerador: number | null,
-  denominador: number | null,
-  porcentaje: number | null
-];
+export type AgregadoNacionalProcesado = {
+  datos: DatosPorAño;
+  etnias: EtniasProcesadas;
+  min: number;
+  max: number;
+};
 
 export type MunicipioProcesado = {
   /** Código del municipio */
@@ -38,12 +11,10 @@ export type MunicipioProcesado = {
   /** Nombre del municipio */
   nombre?: string | null;
   /** Agregados por año del municipio */
-  datos: {
-    [key: string]: Agregado;
-  };
-  // datos?: {
-  //   [key: string]: Instancia[];
-  // };
+  datos: DatosPorAño;
+  etnias?: EtniasProcesadas;
+  min: number;
+  max: number;
 };
 
 export type DepartamentoProcesado = {
@@ -51,19 +22,20 @@ export type DepartamentoProcesado = {
   codigo: string;
   /** Nombre del departamento */
   nombre?: string | null;
-  /** Agregados por año del departamento */
-  // agregados?: {
-  //   [key: string]: Agregado;
-  // };
-  datos: {
-    [key: string]: Agregado;
-  };
-  /** Municipios */
-  municipios?: MunicipioProcesado[];
+  datos: DatosPorAño;
+  etnias: EtniasProcesadas;
+  min: number;
+  max: number;
 };
 
-export type AgregadoNacionalProcesado = {
-  [key: string]: Agregado;
+export type TiposEtnia = {
+  '-1': 'No Reportado';
+  '1': 'Indígena';
+  '2': 'Rom (Gitano)';
+  '3': 'Raizal (San Andrés y Providencia)';
+  '4': 'Palenquero de San Basilio';
+  '5': 'Negro, Mulato, Afrocolombiano o Afrodecendiente';
+  '6': 'Otras Etnias';
 };
 
 export type DatosProcesados = DepartamentoProcesado[];
@@ -108,7 +80,7 @@ export type Lugar = {
   codigo: string;
   nombre?: string | null;
   datos: {
-    [key: string]: Agregado;
+    [año: string]: Agregado;
   };
   dep?: string;
 };
@@ -138,4 +110,57 @@ export type IndicadorReferencia = {
   nombreTabla: string;
   nombreArchivo: string;
   unidadMedida: number;
+};
+
+export type DatosEtnia = {
+  nombre: string | null;
+  codigo: string | null;
+};
+
+export type Agregado = [numerador: number, denominador: number, porcentaje: number];
+
+/**
+ * Variables en las tablas de Excel provenientes de VVEE
+ */
+export type VariablesVvee = {
+  /** Año */
+  anno: string;
+  /** Departamento */
+  departamento: string;
+  /** Municipio */
+  municipio: string;
+  /** Etnia */
+  etnia: string;
+  /** Tipo de régimen */
+  regimen: string;
+  /** Sexo */
+  sexo: string;
+  /** Caracterización */
+  caracterizacion: string;
+  /** Numerador */
+  numerador?: number;
+  /** Denominador */
+  denominador?: number;
+};
+
+export type VariablesRips = {
+  tipo: string;
+  anno: string;
+  departamento: string;
+  municipio: string;
+  regimen: string;
+  etnia: string;
+  valor: number;
+};
+
+type EtniasProcesadas = {
+  [codigoEtnia: string]: {
+    datos: { [año: string]: Agregado };
+    min: number;
+    max: number;
+  };
+};
+
+export type DatosPorAño = {
+  [año: string]: Agregado;
 };

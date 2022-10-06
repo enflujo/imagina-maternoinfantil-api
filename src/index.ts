@@ -5,14 +5,12 @@ import { cadena, logAviso, logCyan } from './utilidades/constantes';
 // import bd from './bd';
 import { crearEstructura } from './bd/cliente';
 import limpieza from './rutas/limpieza';
-import rips from './rutas/rips';
 
 const servidor: FastifyInstance = fastify();
 const PUERTO = process.env.API_PUERTO ? +process.env.API_PUERTO : 8080;
 
 servidor.register(cors);
 servidor.register(limpieza);
-servidor.register(rips);
 
 servidor.listen({ port: PUERTO }, (err) => {
   if (err) {

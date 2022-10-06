@@ -45,16 +45,20 @@ export const redondearDecimal = (num: number, minimo: number, maximo: number): n
 
 export const extraerNombreCodigo = (texto: string): NombreCodigo => {
   if (texto) {
-    const textoComparar = texto.toLocaleLowerCase().trim();
-    if (textoComparar.includes('definido') || textoComparar.includes('reportado')) {
-      return { nombre: 'No Definido', codigo: '-1' };
-    }
+    try {
+      const textoComparar = texto.toLocaleLowerCase().trim();
+      if (textoComparar.includes('definido') || textoComparar.includes('reportado')) {
+        return { nombre: 'No Definido', codigo: '-1' };
+      }
 
-    if (texto.includes('-')) {
-      const arr = texto.split('-');
-      const codigo = arr[0].trim();
-      const nombre = arr[1].trim();
-      return { nombre, codigo };
+      if (texto.includes('-')) {
+        const arr = texto.split('-');
+        const codigo = arr[0].trim();
+        const nombre = arr[1].trim();
+        return { nombre, codigo };
+      }
+    } catch (err) {
+      throw new Error(JSON.stringify(err));
     }
   }
 
@@ -80,4 +84,20 @@ export const actualizarPorcentaje = (agregado: Agregado, unidadMedida: number = 
   const [numerador, denominador] = agregado;
   const porcentaje = (numerador / denominador) * unidadMedida;
   agregado[2] = redondearDecimal(porcentaje, 1, 2);
+};
+
+export const iniciarDatos = () => {
+  return { datos: {}, min: 0, max: 0 };
+};
+
+export const iniciarEtnias = () => {
+  return {
+    '-1': iniciarDatos(),
+    '1': iniciarDatos(),
+    '2': iniciarDatos(),
+    '3': iniciarDatos(),
+    '4': iniciarDatos(),
+    '5': iniciarDatos(),
+    '6': iniciarDatos(),
+  };
 };
