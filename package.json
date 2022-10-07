@@ -11,12 +11,7 @@
     "dev:api": "wait-on api/index.js && nodemon api/index.js",
     "lint": "prettier --check .",
     "lint:fix": "prettier --write --list-different .",
-    "prisma:format": "prisma format",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev --name inicio",
-    "prisma:push": "prisma db push",
-    "prisma:seed": "prisma db seed",
-    "prisma:borrar": "ts-node ./src/prisma/borrarTodo.ts",
+    "pesos": "ts-node ./src/datosDescarga.ts",
     "limpiar:exportados": "rimraf ./datos/exportados/**/*"
   },
   "dependencies": {
