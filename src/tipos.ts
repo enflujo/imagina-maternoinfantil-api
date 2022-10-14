@@ -1,4 +1,4 @@
-export type AgregadoNacionalProcesado = {
+export type NacionalProcesado = {
   datos: DatosPorAño;
   etnias: EtniasProcesadas;
   min: number;

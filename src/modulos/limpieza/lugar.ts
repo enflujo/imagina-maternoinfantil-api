@@ -1,8 +1,9 @@
-import { DatosEtnia, DepartamentoProcesado, MunicipioProcesado } from '../../tipos';
+import { DatosEtnia, DepartamentoProcesado, MunicipioProcesado, NacionalProcesado } from '../../tipos';
 import { extraerNombreCodigo, iniciarEtnias } from '../../utilidades/ayudas';
 import { departamentos, municipios } from '../../utilidades/lugaresColombia';
 
 export default (
+  agregadoNacional: NacionalProcesado,
   agregadoDepartamental: DepartamentoProcesado[],
   agregadoMunicipal: MunicipioProcesado[],
   dep: string | null,
@@ -81,9 +82,24 @@ export default (
 
   const etniaDepartamento = dEtnia.codigo ? datosDepartamento.etnias[dEtnia.codigo].datos[año] : null;
 
+  // País
+  if (!agregadoNacional.datos[año]) {
+    agregadoNacional.datos[año] = [0, 0, 0];
+  }
+
+  if (dEtnia.codigo) {
+    if (!agregadoNacional.etnias[dEtnia.codigo].datos[año]) {
+      agregadoNacional.etnias[dEtnia.codigo].datos[año] = [0, 0, 0];
+    }
+  }
+
+  const etniaPais = dEtnia.codigo ? agregadoNacional.etnias[dEtnia.codigo].datos[año] : null;
+
   return {
+    datosPais: agregadoNacional.datos[año],
     datosDepartamento: datosDepartamento.datos[año],
     datosMunicipio: datosMunicipio.datos[año],
     etniaDepartamento,
+    etniaPais,
   };
 };
