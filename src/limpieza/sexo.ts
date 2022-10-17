@@ -1,4 +1,4 @@
-import errata from '../errata';
+import errata from '../modulos/errata';
 
 export default (sexo: string, numeroFila: number, nombreTabla: string) => {
   let codigoSexo: string | null = null;

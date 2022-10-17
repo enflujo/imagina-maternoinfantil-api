@@ -1,4 +1,4 @@
-import { esNumero } from '../../utilidades/ayudas';
+import { esNumero } from '../utilidades/ayudas';
 
 export default (caracterizacion: string) => {
   let codigoCaracterizacion: string | null = null;

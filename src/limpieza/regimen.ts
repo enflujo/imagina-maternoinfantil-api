@@ -1,5 +1,5 @@
-import { extraerNombreCodigo } from '../../utilidades/ayudas';
-import errata from '../errata';
+import { extraerNombreCodigo } from '../utilidades/ayudas';
+import errata from '../modulos/errata';
 
 export default (tipoRegimen: string, numeroFila: number, nombreTabla: string) => {
   let codigoRegimen: string | null = null;

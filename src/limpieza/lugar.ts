@@ -1,6 +1,6 @@
-import { DatosEtnia, DepartamentoProcesado, MunicipioProcesado, NacionalProcesado } from '../../tipos';
-import { extraerNombreCodigo, iniciarEtnias } from '../../utilidades/ayudas';
-import { departamentos, municipios } from '../../utilidades/lugaresColombia';
+import { DatosEtnia, DepartamentoProcesado, MunicipioProcesado, NacionalProcesado } from '../tipos';
+import { extraerNombreCodigo, iniciarEtnias } from '../utilidades/ayudas';
+import { departamentos, municipios } from '../utilidades/lugaresColombia';
 
 export default (
   agregadoNacional: NacionalProcesado,

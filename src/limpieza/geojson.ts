@@ -1,13 +1,8 @@
 import { Position, FeatureCollection } from 'geojson';
-import { guardarJSON, redondearDecimal } from '../../utilidades/ayudas';
-// import municipiosGeoJson from '../../../datos/fuentes/MunicipiosVeredas1MB.json';
-// import departamentosGeoJson from '../../../datos/fuentes/departamentosFuente.json';
-import { departamentos as dDep, municipios as dMun } from '../../utilidades/lugaresColombia';
+import { guardarJSON, redondearDecimal } from '../utilidades/ayudas';
+import { departamentos as dDep, municipios as dMun } from '../utilidades/lugaresColombia';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-
-// const municipios = municipiosGeoJson as FeatureCollection<any>;
-// const departamentos = departamentosGeoJson as FeatureCollection<any>;
 
 /**
  * Reduce el tamaño final del GEOJSON al reducir los decimales
@@ -36,11 +31,8 @@ function reducirGeometria(geometria: any) {
 
 function limpiarGeojson() {
   try {
-    const municipiosGeo = readFileSync(resolve(__dirname, '../../../datos/fuentes/MunicipiosVeredas1MB.json'), 'utf-8');
-    const departamentosGeo = readFileSync(
-      resolve(__dirname, '../../../datos/fuentes/departamentosFuente.json'),
-      'utf-8'
-    );
+    const municipiosGeo = readFileSync(resolve(__dirname, '../../datos/fuentes/MunicipiosVeredas1MB.json'), 'utf-8');
+    const departamentosGeo = readFileSync(resolve(__dirname, '../../datos/fuentes/departamentosFuente.json'), 'utf-8');
     const municipios: FeatureCollection = JSON.parse(municipiosGeo);
     const departamentos: FeatureCollection = JSON.parse(departamentosGeo);
 
@@ -83,7 +75,7 @@ function limpiarGeojson() {
 
     return { departamentos, municipios };
   } catch (error) {
-    console.error(error);
+    throw new Error(JSON.stringify(error, null, 2));
   }
 
   return;
@@ -91,10 +83,9 @@ function limpiarGeojson() {
 
 export default () => {
   const datos = limpiarGeojson();
+
   if (datos) {
     guardarJSON(datos.municipios, 'municipios');
     guardarJSON(datos.departamentos, 'departamentos');
   }
-
-  // return { municipios, departamentos };
 };

@@ -1,6 +1,13 @@
 import { writeFileSync } from 'fs';
 import path from 'path';
-import { Agregado, NombreCodigo } from '../tipos';
+import {
+  Agregado,
+  DatosPorAño,
+  DepartamentoProcesado,
+  MunicipioProcesado,
+  NacionalProcesado,
+  NombreCodigo,
+} from '../tipos';
 
 /**
  * Revisa si el valor de un texto contiene un número.
@@ -100,4 +107,33 @@ export const iniciarEtnias = () => {
     '5': iniciarDatos(),
     '6': iniciarDatos(),
   };
+};
+
+export const calcularMinMax = (agregados: DatosPorAño) => {
+  let min = Infinity;
+  let max = 0;
+  for (let año in agregados) {
+    const valor = agregados[año][2];
+    min = valor < min ? valor : min;
+    max = valor > max ? valor : max;
+  }
+
+  return { min, max };
+};
+
+export const agregarExtremos = (agregado: NacionalProcesado | DepartamentoProcesado | MunicipioProcesado) => {
+  const extremos = calcularMinMax(agregado.datos);
+  agregado.min = extremos.min;
+  agregado.max = extremos.max;
+
+  if (agregado.etnias) {
+    for (let codigoEtnia in agregado.etnias) {
+      const datosEtnia = agregado.etnias[codigoEtnia];
+      const extremosEtnia = calcularMinMax(datosEtnia.datos);
+      datosEtnia.min = extremosEtnia.min;
+      datosEtnia.max = extremosEtnia.max;
+    }
+  }
+
+  return agregado;
 };

@@ -1,6 +1,6 @@
 import { fuzzy } from 'fast-fuzzy';
-import { DatosEtnia } from '../../tipos';
-import { extraerNombreCodigo } from '../../utilidades/ayudas';
+import { DatosEtnia } from '../tipos';
+import { extraerNombreCodigo } from '../utilidades/ayudas';
 
 const tiposEtnia = [
   { nombre: 'NO REPORTADO', codigo: '-1' },
