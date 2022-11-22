@@ -7,7 +7,8 @@
     "lint": "prettier --check .",
     "lint:fix": "prettier --write --list-different .",
     "pesos": "ts-node ./src/datosDescarga.ts",
-    "limpiar:exportados": "rimraf ./datos/exportados/**/*"
+    "limpiar:exportados": "rimraf ./datos/exportados/**/*",
+    "analisis": "nodemon src/analisis.ts"
   },
   "dependencies": {
     "cli-color": "^2.0.3",

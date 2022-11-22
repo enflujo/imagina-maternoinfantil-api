@@ -110,6 +110,7 @@ export type IndicadorReferencia = {
   nombreTabla: string;
   nombreArchivo: string;
   unidadMedida: number;
+  nombreIndicador: string;
 };
 
 export type DatosEtnia = {
