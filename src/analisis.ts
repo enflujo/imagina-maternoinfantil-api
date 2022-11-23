@@ -39,7 +39,7 @@ export function procesarPais() {
           const datos = JSON.parse(archivo);
           datos.analisis = {
             tendencia,
-            alarma: !!alarma,
+            alarma: alarma === 'alarma',
           };
           guardarJSON(datos, `${objetoIndicador?.nombreArchivo}-pais`);
         }
@@ -90,7 +90,7 @@ async function procesarDepartamentos() {
             if (datosDep) {
               datosDep.analisis = {
                 tendencia,
-                alarma: !!alarma,
+                alarma: alarma === 'alarma',
               };
               guardarJSON(datos, `${objetoIndicador?.nombreArchivo}-departamentos`);
             }
@@ -146,7 +146,7 @@ async function procesarMunicipios() {
             if (datosMun) {
               datosMun.analisis = {
                 tendencia,
-                alarma: !!alarma,
+                alarma: alarma === 'alarma',
               };
               guardarJSON(datos, `${objetoIndicador?.nombreArchivo}-municipios`);
             }
@@ -169,10 +169,10 @@ async function procesarMunicipios() {
 async function procesar() {
   await procesarPais();
   console.log('Fin Nacionales');
-  // await procesarDepartamentos();
-  // console.log('Fin Departamentos');
-  // await procesarMunicipios();
-  // console.log('Fin Municipios');
+  await procesarDepartamentos();
+  console.log('Fin Departamentos');
+  await procesarMunicipios();
+  console.log('Fin Municipios');
 }
 
 procesar();
