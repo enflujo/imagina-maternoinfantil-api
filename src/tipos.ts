@@ -15,6 +15,12 @@ export type MunicipioProcesado = {
   etnias?: EtniasProcesadas;
   min: number;
   max: number;
+  analisis?: Analisis;
+};
+
+export type Analisis = {
+  tendencia: string;
+  alarma: boolean;
 };
 
 export type DepartamentoProcesado = {
@@ -26,6 +32,7 @@ export type DepartamentoProcesado = {
   etnias: EtniasProcesadas;
   min: number;
   max: number;
+  analisis?: Analisis;
 };
 
 export type TiposEtnia = {
