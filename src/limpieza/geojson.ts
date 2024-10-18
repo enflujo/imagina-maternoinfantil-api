@@ -39,15 +39,20 @@ function limpiarGeojson() {
     municipios.features = municipios.features.map((municipio) => {
       if (municipio.properties) {
         const codigo = municipio.properties.DPTOMPIO;
+        const codigoDep = municipio.properties.DPTO_CCDGO;
         const datosLugar = dMun.datos.find((lugar) => lugar[3] === codigo);
+        const datosDep = dDep.datos.find((lugar) => lugar[0] === codigoDep);
         const nombre = datosLugar ? datosLugar[1] : municipio.properties.MPIO_CNMBR;
+        const dep = datosDep ? datosDep[1] : null;
+
+        if (!dep) console.log(municipio);
 
         return {
           type: municipio.type,
           properties: {
             codigo,
             nombre,
-            departamento: municipio.properties.DPTO_CCDGO,
+            dep,
           },
           geometry: reducirGeometria(municipio.geometry),
         };
